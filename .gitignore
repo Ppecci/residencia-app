@@ -1,0 +1,20 @@
+# Archivos generados por Maven
+target/
+.mvn/
+.settings/
+.classpath
+.project
+
+# VS Code
+.vscode/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Base de datos: ignora todos los .db menos la mia
+/data/*.db
+!/data/residenciaSauces.db
