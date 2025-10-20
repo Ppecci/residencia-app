@@ -37,9 +37,9 @@ public class AccesoControlador {
             Sesion.setUsuario(u);
 
             switch (u.getRol()) {
-                case "ADMIN" -> Navegacion.cambiarVista("/fxml/PanelAdmin.fxml");
-                case "TRABAJADOR" -> Navegacion.cambiarVista("/fxml/PanelTrabajador.fxml");
-                case "FAMILIAR" -> Navegacion.cambiarVista("/fxml/PanelFamiliar.fxml");
+                case "ADMIN" -> Navegacion.cambiar("/fxml/PanelAdmin.fxml");
+                case "TRABAJADOR" -> Navegacion.cambiar("/fxml/PanelTrabajador.fxml");
+                case "FAMILIAR" -> Navegacion.cambiar("/fxml/PanelFamiliar.fxml");
                 default -> errorEtiqueta.setText("Rol no reconocido: " + u.getRol());
             }
         } catch (Exception e) {

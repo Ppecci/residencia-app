@@ -1,22 +1,15 @@
 package es.tfg.residencias;
 
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
+import es.tfg.residencias.ui.util.Navegacion;
 
 public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        // Carga la vista del acceso (login)
-        Parent root = FXMLLoader.load(getClass().getResource("/fxml/AccesoVista.fxml"));
-
-        Scene scene = new Scene(root);
-        stage.setTitle("Gestor de Residencias");
-        stage.setScene(scene);
-        stage.show();
+        // Inicializa Navegacion con el Stage y carga la primera vista
+        Navegacion.init(stage, "/fxml/AccesoVista.fxml");
     }
 
     public static void main(String[] args) {

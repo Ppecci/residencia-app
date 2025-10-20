@@ -1,15 +1,21 @@
 package bd;
 
-import java.sql.*;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 
 public class ConexionBD {
-    private static final String URL = "jdbc:sqlite:ruta/a/tu_base.sqlite"; // <-- CAMBIA ESTA RUTA
+    private static final String DB_PATH =
+            Paths.get("data", "residenciaSauces.db").toAbsolutePath().toString();
+    private static final String URL = "jdbc:sqlite:" + DB_PATH;
 
-    public static Connection obtener() throws SQLException {
+    public static Connection obtener() throws Exception {
         Connection c = DriverManager.getConnection(URL);
         try (Statement st = c.createStatement()) {
-            st.execute("PRAGMA foreign_keys=ON;");
+            st.execute("PRAGMA foreign_keys = ON;");
         }
         return c;
     }
 }
+
