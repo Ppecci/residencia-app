@@ -10,7 +10,27 @@
     <center>
         <TabPane>
             <tabs>
-                <Tab text="Habitación"/>
+                <Tab text="Habitación">
+                <content>
+                    <GridPane hgap="8" vgap="8" style="-fx-padding: 12;">
+                        <children>
+                            <Label text="Número:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                            <Label fx:id="lblHabNumero" text="—" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                            <Label text="Planta:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                            <Label fx:id="lblHabPlanta" text="—" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                            <Label text="Desde:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                            <Label fx:id="lblHabDesde" text="—" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                            <Label text="Notas:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                            <Label fx:id="lblHabNotas" text="—" wrapText="true" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                            <Button text="Cambiar habitación" onAction="#cambiarHabitacion" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                        </children>
+                    </GridPane>
+                </content>
+                </Tab>
                 <Tab text="Medicación–Prescripción"/>
                 <Tab text="Dieta"/>
                 <Tab text="Familia"/>
