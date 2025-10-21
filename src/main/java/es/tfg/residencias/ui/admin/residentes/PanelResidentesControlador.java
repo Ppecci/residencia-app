@@ -4,8 +4,11 @@ import dao.ResidentesDAO;
 import modelo.Residente;
 import javafx.collections.*;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.StackPane;
 
 public class PanelResidentesControlador {
 
@@ -35,6 +38,16 @@ public class PanelResidentesControlador {
         tabla.setItems(datos);
         tabla.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> seleccionado = n);
         refrescar();
+        tabla.setRowFactory(tv -> {
+        javafx.scene.control.TableRow<modelo.Residente> row = new javafx.scene.control.TableRow<>();
+         row.setOnMouseClicked(ev -> {
+        if (ev.getClickCount() == 2 && !row.isEmpty()) {
+            seleccionado = row.getItem();
+            verDetalle();
+        }
+        });
+        return row;
+        });
     }
 
     @FXML private void refrescar() { cargar(null); }
@@ -77,7 +90,47 @@ public class PanelResidentesControlador {
             }
         });
     }
+    
 
+    @FXML
+private void verDetalle() {
+    Residente r = seleccionado;
+    if (r == null) {
+        info("Selecciona un residente primero");
+        return;
+    }
+
+    try {
+        var url = getClass().getResource("/fxml/PanelResidenteActual.fxml");
+        if (url == null) {
+            error("No se encontró el FXML",
+                  "Ruta inválida: /fxml/PanelResidenteActual.fxml.\n" +
+                  "Asegúrate de que está en src/main/resources/fxml/ con ese nombre exacto.");
+            return;
+        }
+
+        FXMLLoader loader = new FXMLLoader(url);
+        Parent vistaDetalle = loader.load();  // <-- tipo explícito
+
+        // Tipo explícito del controlador, NUNCA como Object
+        PanelResidenteActualControlador ctrl = loader.getController();
+        ctrl.setResidente(r);
+
+        // Busca el contenedor central del Panel Admin
+        StackPane centro = (StackPane) tabla.getScene().lookup("#contenedorCentro");
+        if (centro == null) {
+            error("No se encontró el contenedor central",
+                  "Revisa fx:id=\"contenedorCentro\" en PanelAdmin.fxml");
+            return;
+        }
+        centro.getChildren().setAll(vistaDetalle); // <-- acepta Parent/Node
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        error("No se pudo abrir el detalle",
+              e.getClass().getSimpleName() + ": " + e.getMessage());
+    }
+}
     @FXML
     private void guardar() {
         String nombre = inNombre.getText();

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="es.tfg.residencias.ui.admin.residentes.PanelResidenteActualControlador">
+    <top>
+        <Label fx:id="lblTitulo" text="Detalle residente" style="-fx-font-size: 16; -fx-padding: 10;"/>
+    </top>
+    <center>
+        <TabPane>
+            <tabs>
+                <Tab text="Habitación"/>
+                <Tab text="Medicación–Prescripción"/>
+                <Tab text="Dieta"/>
+                <Tab text="Familia"/>
+            </tabs>
+        </TabPane>
+    </center>
+</BorderPane>

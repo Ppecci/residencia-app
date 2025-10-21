@@ -15,6 +15,7 @@
                 <Button text="Eliminar" onAction="#eliminar"/>
                 <Separator/>
                 <Button text="Refrescar" onAction="#refrescar"/>
+                <Button text="Ver Detalle" onAction="#verDetalle"/>
             </items>
         </ToolBar>
     </top>
@@ -31,5 +32,31 @@
             </columns>
         </TableView>
     </center>
+<bottom>
+    <TitledPane text="Formulario" expanded="false">
+        <content>
+            <GridPane hgap="8" vgap="8" style="-fx-padding: 10;">
+                <children>
+                    <Label text="Nombre:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <TextField fx:id="inNombre" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                    <Label text="Apellidos:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <TextField fx:id="inApellidos" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                    <Label text="Nacimiento (yyyy-MM-dd):" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <TextField fx:id="inFecha" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                    <Label text="Notas:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <TextArea fx:id="inNotas" prefRowCount="3" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                    <Label text="Activo:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                    <CheckBox fx:id="chkActivo" selected="true" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                    <Button text="Guardar" onAction="#guardar" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+                </children>
+            </GridPane>
+        </content>
+    </TitledPane>
+</bottom>
 
 </BorderPane>
