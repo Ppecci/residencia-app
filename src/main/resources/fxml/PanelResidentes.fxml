@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="es.tfg.residencias.ui.admin.residentes.PanelResidentesControlador">
+
+    <top>
+        <ToolBar>
+            <items>
+                <TextField fx:id="txtBuscar" promptText="Buscar por nombre o apellidos" onKeyReleased="#buscar"/>
+                <Button text="Nuevo" onAction="#nuevo"/>
+                <Button text="Editar" onAction="#editar"/>
+                <Button text="Eliminar" onAction="#eliminar"/>
+                <Separator/>
+                <Button text="Refrescar" onAction="#refrescar"/>
+            </items>
+        </ToolBar>
+    </top>
+
+    <center>
+        <TableView fx:id="tabla">
+            <columns>
+                <TableColumn fx:id="colId" text="ID" prefWidth="60"/>
+                <TableColumn fx:id="colNombre" text="Nombre" prefWidth="140"/>
+                <TableColumn fx:id="colApellidos" text="Apellidos" prefWidth="180"/>
+                <TableColumn fx:id="colFecha" text="Nacimiento" prefWidth="120"/>
+                <TableColumn fx:id="colNotas" text="Notas" prefWidth="220"/>
+                <TableColumn fx:id="colActivo" text="Activo" prefWidth="80"/>
+            </columns>
+        </TableView>
+    </center>
+
+</BorderPane>

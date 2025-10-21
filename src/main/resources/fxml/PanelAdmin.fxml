@@ -6,9 +6,9 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="es.tfg.residencias.ui.admin.PanelAdminControlador">
     <left>
-        <VBox spacing="8" style="-fx-background-color: #1f2937;" prefWidth="220">
+        <VBox spacing="8" style="-fx-background-color: #1f3724ff;" prefWidth="220">
             <children>
-                <Label text="Panel Admin" style="-fx-text-fill: white; -fx-font-size: 16; -fx-padding: 16 12 16 12;" />
+                <Label text="Residencia Los Sauces" style="-fx-text-fill: white; -fx-font-size: 16; -fx-padding: 16 12 16 12;" />
                 <Button text="Residentes" fx:id="btnResidentes" onAction="#abrirResidentes" prefWidth="200"/>
                 <Button text="Empleados" onAction="#abrirEmpleados" prefWidth="200"/>
                 <Button text="Familiares" onAction="#abrirFamiliares" prefWidth="200"/>
