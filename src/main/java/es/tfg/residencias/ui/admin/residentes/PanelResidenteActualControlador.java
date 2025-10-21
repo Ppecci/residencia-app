@@ -13,6 +13,7 @@ import modelo.Residente;
 import java.time.LocalDate;
 
 import dao.HabitacionDAO;
+import dao.PrescripcionDAO;
 
 public class PanelResidenteActualControlador {
     @FXML private Label lblTitulo;
@@ -31,6 +32,7 @@ public class PanelResidenteActualControlador {
         // Nada más recibir el residente, cargamos la pestaña Habitación
         cargarHabitacion();
         cargarHistorico();
+        cargarPrescripciones();
     }
 
     private void cargarHabitacion() {
@@ -141,6 +143,42 @@ private void cargarHistorico() {
         }
     } catch (Exception e) {
         e.printStackTrace();
+    }
+}
+
+@FXML
+    private TableView<PrescripcionDAO.PrescView> tablaPresc;
+@FXML private TableColumn<PrescripcionDAO.PrescView, String> colPrescMed, colPrescForma, colPrescFuerza,
+        colPrescDosis, colPrescFreq, colPrescVia,  colPrescInicio, colPrescFin, colPrescNotas;
+
+private final PrescripcionDAO prescDAO = new PrescripcionDAO();
+private final ObservableList<PrescripcionDAO.PrescView> datosPresc = FXCollections.observableArrayList();
+private boolean prescInit = false;
+
+private void initPrescTableIfNeeded() {
+    if (prescInit || tablaPresc == null) return;
+    colPrescMed.setCellValueFactory(new PropertyValueFactory<>("medicamento"));
+    colPrescForma.setCellValueFactory(new PropertyValueFactory<>("forma"));
+    colPrescFuerza.setCellValueFactory(new PropertyValueFactory<>("fuerza"));
+    colPrescDosis.setCellValueFactory(new PropertyValueFactory<>("dosis"));
+    colPrescFreq.setCellValueFactory(new PropertyValueFactory<>("frecuencia"));
+    colPrescVia.setCellValueFactory(new PropertyValueFactory<>("via"));
+    colPrescInicio.setCellValueFactory(new PropertyValueFactory<>("inicio"));
+    colPrescFin.setCellValueFactory(new PropertyValueFactory<>("fin"));
+    colPrescNotas.setCellValueFactory(new PropertyValueFactory<>("notas"));
+    tablaPresc.setItems(datosPresc);
+    prescInit = true;
+}
+private void cargarPrescripciones() {
+    if (residente == null || tablaPresc == null) return;
+    initPrescTableIfNeeded();
+    datosPresc.clear();
+    try {
+        var lista = prescDAO.listarActivas(residente.getId());
+        datosPresc.addAll(lista);
+    } catch (Exception e) {
+        e.printStackTrace();
+        // opcional: mostrar alerta amigable
     }
 }
 }
