@@ -121,5 +121,15 @@ public class PrescripcionDAO {
             ps.executeUpdate();
         }
     }
+    /** Finalizar prescripción (establecer end_date). */
+    public void finalizar(int prescripcionId, String fechaFin) throws Exception {
+    String sql = "UPDATE prescripciones SET end_date = ? WHERE id = ?";
+    try (Connection c = ConexionBD.obtener();
+         PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setString(1, fechaFin);
+        ps.setInt(2, prescripcionId);
+        ps.executeUpdate();
+    }
+}
 }
 

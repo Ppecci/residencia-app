@@ -272,5 +272,33 @@ private void cargarPrescripciones() {
             "Error al añadir prescripción:\n" + e.getMessage()).showAndWait();
         }
 }
+@FXML
+private void finalizarPrescripcion() {
+    if (tablaPresc == null || tablaPresc.getSelectionModel().getSelectedItem() == null) {
+        new Alert(Alert.AlertType.INFORMATION, "Selecciona una prescripción activa primero.").showAndWait();
+        return;
+    }
+
+    var seleccionada = tablaPresc.getSelectionModel().getSelectedItem();
+
+    // Confirmación antes de cerrar
+    Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+    confirm.setTitle("Finalizar prescripción");
+    confirm.setHeaderText("¿Finalizar la medicación seleccionada?");
+    confirm.setContentText("Medicamento: " + seleccionada.getMedicamento());
+    var res = confirm.showAndWait();
+
+    if (res.isEmpty() || res.get() != ButtonType.OK) return; // cancelado
+
+    try {
+        String hoy = java.time.LocalDate.now().toString(); // formato YYYY-MM-DD
+        prescDAO.finalizar(seleccionada.getId(), hoy);
+        cargarPrescripciones();
+        new Alert(Alert.AlertType.INFORMATION, "Prescripción finalizada correctamente.").showAndWait();
+    } catch (Exception e) {
+        e.printStackTrace();
+        new Alert(Alert.AlertType.ERROR, "Error al finalizar prescripción:\n" + e.getMessage()).showAndWait();
+    }
+}
 }
 

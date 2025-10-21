@@ -46,7 +46,8 @@
                         <VBox spacing="8" style="-fx-padding: 12;">
                         <ToolBar>
                             <items>
-                            <Button text="Añadir…" onAction="#anadirPrescripcion"/>
+                            <Button text="Añadir prescripción" onAction="#anadirPrescripcion"/>
+                            <Button text="Finalizar prescripción" onAction="#finalizarPrescripcion"/>
                             <!-- (más adelante: Editar, Finalizar) -->
                             </items>
                         </ToolBar>
