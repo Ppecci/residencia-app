@@ -44,7 +44,7 @@ public class PrescripcionDAO {
     public List<PrescView> listarActivas(int residenteId) throws Exception {
         String sql = """
             SELECT p.id,
-                   m.nombre   AS medicamento,
+                   m.nombre    AS medicamento,
                    m.forma     AS forma,
                    m.fuerza    AS fuerza,
                    p.dosis, p.frecuencia, p.via,
@@ -80,4 +80,46 @@ public class PrescripcionDAO {
             }
         }
     }
+
+    /** ¿Existe ya una prescripción ACTIVA del mismo medicamento para este residente? */
+    public boolean existeActivaMismoMedicamento(int residenteId, int medicacionId) throws Exception {
+        String sql = """
+            SELECT 1
+            FROM prescripciones
+            WHERE residente_id = ? AND medicacion_id = ?
+              AND (end_date IS NULL OR end_date = '')
+            LIMIT 1
+            """;
+        try (Connection c = ConexionBD.obtener();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, residenteId);
+            ps.setInt(2, medicacionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    /** Insertar nueva prescripción (activa: end_date = NULL). */
+    public void insertar(int residenteId, int medicacionId,
+                         String dosis, String frecuencia, String via,
+                         String startDate, String notas) throws Exception {
+        String sql = """
+            INSERT INTO prescripciones
+                (residente_id, medicacion_id, dosis, frecuencia, via, start_date, end_date, notas)
+            VALUES (?,?,?,?,?,?,NULL,?)
+            """;
+        try (Connection c = ConexionBD.obtener();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, residenteId);
+            ps.setInt(2, medicacionId);
+            ps.setString(3, dosis);
+            ps.setString(4, frecuencia);
+            ps.setString(5, via);
+            ps.setString(6, startDate);
+            ps.setString(7, notas);
+            ps.executeUpdate();
+        }
+    }
 }
+

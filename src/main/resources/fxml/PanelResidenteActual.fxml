@@ -44,21 +44,28 @@
                 <Tab text="Medicación–Prescripción">
                     <content>
                         <VBox spacing="8" style="-fx-padding: 12;">
-                            <!-- (Opcional) Una barra con botones se puede añadir luego -->
-                            <TableView fx:id="tablaPresc" prefHeight="300">
-                                <columns>
-                                    <TableColumn fx:id="colPrescMed"   text="Medicamento" prefWidth="160"/>
-                                    <TableColumn fx:id="colPrescForma" text="Forma"       prefWidth="110"/>
-                                    <TableColumn fx:id="colPrescFuerza" text="Fuerza"     prefWidth="110"/>
-                                    <TableColumn fx:id="colPrescDosis" text="Dosis"       prefWidth="110"/>
-                                    <TableColumn fx:id="colPrescFreq"  text="Frecuencia"  prefWidth="130"/>
-                                    <TableColumn fx:id="colPrescVia"   text="Vía"         prefWidth="90"/>
-                                    <TableColumn fx:id="colPrescInicio" text="Inicio"     prefWidth="110"/>
-                                    <TableColumn fx:id="colPrescFin"    text="Fin"        prefWidth="110"/>
-                                    <TableColumn fx:id="colPrescNotas"  text="Notas"      prefWidth="220"/>
-                                </columns>
-                            </TableView>
-                            <Label text="Mostrando prescripciones activas (fin vacío = activa)."/>
+                        <ToolBar>
+                            <items>
+                            <Button text="Añadir…" onAction="#anadirPrescripcion"/>
+                            <!-- (más adelante: Editar, Finalizar) -->
+                            </items>
+                        </ToolBar>
+
+                        <TableView fx:id="tablaPresc" prefHeight="300">
+                            <columns>
+                            <TableColumn fx:id="colPrescMed"    text="Medicamento" prefWidth="160"/>
+                            <TableColumn fx:id="colPrescForma"  text="Forma"       prefWidth="110"/>
+                            <TableColumn fx:id="colPrescFuerza" text="Fuerza"      prefWidth="110"/>
+                            <TableColumn fx:id="colPrescDosis"  text="Dosis"       prefWidth="110"/>
+                            <TableColumn fx:id="colPrescFreq"   text="Frecuencia"  prefWidth="130"/>
+                            <TableColumn fx:id="colPrescVia"    text="Vía"         prefWidth="90"/>
+                            <TableColumn fx:id="colPrescInicio" text="Inicio"      prefWidth="110"/>
+                            <TableColumn fx:id="colPrescFin"    text="Fin"         prefWidth="110"/>
+                            <TableColumn fx:id="colPrescNotas"  text="Notas"       prefWidth="220"/>
+                            </columns>
+                        </TableView>
+
+                        <Label text="Mostrando prescripciones activas."/>
                         </VBox>
                     </content>
                 </Tab>

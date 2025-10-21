@@ -1,19 +1,20 @@
 package es.tfg.residencias.ui.admin.residentes;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.ChoiceDialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TableColumn;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.layout.GridPane;
+import javafx.geometry.Insets;
 import modelo.Residente;
 
 import java.time.LocalDate;
 
 import dao.HabitacionDAO;
 import dao.PrescripcionDAO;
+import dao.MedicacionDAO;
+import dao.MedicacionDAO.Medicacion;
 
 public class PanelResidenteActualControlador {
     @FXML private Label lblTitulo;
@@ -33,6 +34,7 @@ public class PanelResidenteActualControlador {
         cargarHabitacion();
         cargarHistorico();
         cargarPrescripciones();
+        
     }
 
     private void cargarHabitacion() {
@@ -65,6 +67,8 @@ public class PanelResidenteActualControlador {
     }
 
     private String safe(String s) { return (s == null || s.isBlank()) ? "—" : s; }
+
+
     @FXML
         private void cambiarHabitacion() {
             if (residente == null) { return; }
@@ -114,6 +118,8 @@ public class PanelResidenteActualControlador {
             "No se pudo cambiar la habitación:\n" + e.getMessage()).showAndWait();
     }
 }
+
+
 @FXML private TableView<HabitacionDAO.HistHab> tablaHistHab;
 @FXML private TableColumn<HabitacionDAO.HistHab, String> colHistNumero, colHistPlanta, colHistDesde, colHistHasta, colHistNotas;
 
@@ -152,6 +158,7 @@ private void cargarHistorico() {
         colPrescDosis, colPrescFreq, colPrescVia,  colPrescInicio, colPrescFin, colPrescNotas;
 
 private final PrescripcionDAO prescDAO = new PrescripcionDAO();
+private final MedicacionDAO medicacionDAO = new MedicacionDAO();
 private final ObservableList<PrescripcionDAO.PrescView> datosPresc = FXCollections.observableArrayList();
 private boolean prescInit = false;
 
@@ -180,5 +187,90 @@ private void cargarPrescripciones() {
         e.printStackTrace();
         // opcional: mostrar alerta amigable
     }
+    }
+    @FXML
+    private void anadirPrescripcion() {
+    if (residente == null) return;
+
+    try {
+        // 1) Medicamentos para el combo
+        var meds = medicacionDAO.listarTodas();
+        if (meds.isEmpty()) {
+            new Alert(Alert.AlertType.INFORMATION,
+                "No hay medicamentos en el catálogo. Crea alguno en 'medicaciones'.").showAndWait();
+            return;
+        }
+
+        // 2) Diálogo de alta
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Nueva prescripción");
+        dialog.setHeaderText("Completa los datos de la nueva prescripción");
+
+        ButtonType guardarBtn = new ButtonType("Guardar", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(guardarBtn, ButtonType.CANCEL);
+
+        ComboBox<Medicacion> cbMed = new ComboBox<>();
+        cbMed.getItems().addAll(meds);
+        cbMed.getSelectionModel().selectFirst();
+
+        TextField inDosis = new TextField();
+        TextField inFreq  = new TextField();
+        TextField inVia   = new TextField();
+        DatePicker dpInicio = new DatePicker(LocalDate.now());
+        TextArea inNotas  = new TextArea(); inNotas.setPrefRowCount(3);
+
+        GridPane gp = new GridPane();
+        gp.setHgap(10); gp.setVgap(10); gp.setPadding(new Insets(10));
+        gp.addRow(0, new Label("Medicamento:"), cbMed);
+        gp.addRow(1, new Label("Dosis:"), inDosis);
+        gp.addRow(2, new Label("Frecuencia:"), inFreq);
+        gp.addRow(3, new Label("Vía:"), inVia);
+        gp.addRow(4, new Label("Inicio:"), dpInicio);
+        gp.addRow(5, new Label("Notas:"), inNotas);
+        dialog.getDialogPane().setContent(gp);
+
+        // Validación básica
+        var btnOk = dialog.getDialogPane().lookupButton(guardarBtn);
+        btnOk.addEventFilter(javafx.event.ActionEvent.ACTION, ev -> {
+            if (cbMed.getValue() == null || inDosis.getText().isBlank() || inFreq.getText().isBlank()) {
+                new Alert(Alert.AlertType.WARNING,
+                    "Medicamento, dosis y frecuencia son obligatorios.").showAndWait();
+                ev.consume();
+            }
+        });
+
+        var res = dialog.showAndWait();
+        if (res.isEmpty() || res.get() != guardarBtn) return; // cancelado
+
+        var medSel = cbMed.getValue();
+        String dosis  = inDosis.getText().trim();
+        String freq   = inFreq.getText().trim();
+        String via    = inVia.getText().trim();
+        String inicio = (dpInicio.getValue() != null ? dpInicio.getValue().toString() : LocalDate.now().toString());
+        String notas  = inNotas.getText();
+
+        // 3) Regla: NO permitir duplicado activo del mismo medicamento
+        boolean yaActiva = prescDAO.existeActivaMismoMedicamento(residente.getId(), medSel.id);
+        if (yaActiva) {
+            new Alert(Alert.AlertType.ERROR,
+                "Ya existe una prescripción ACTIVA para \"" + medSel.nombre + "\".\n" +
+                "No se puede duplicar la misma medicación activa.").showAndWait();
+            return;
+        }
+
+        // 4) Insertar
+        prescDAO.insertar(residente.getId(), medSel.id, dosis, freq, via, inicio, notas);
+
+        // 5) Refrescar tabla
+        cargarPrescripciones();
+
+        new Alert(Alert.AlertType.INFORMATION,
+            "Prescripción añadida correctamente.").showAndWait();
+    } catch (Exception e) {
+        e.printStackTrace();    
+        new Alert(Alert.AlertType.ERROR,
+            "Error al añadir prescripción:\n" + e.getMessage()).showAndWait();
+        }
 }
 }
+
