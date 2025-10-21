@@ -27,6 +27,16 @@
                             <Label fx:id="lblHabNotas" text="—" wrapText="true" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
 
                             <Button text="Cambiar habitación" onAction="#cambiarHabitacion" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                            <Separator GridPane.rowIndex="6" GridPane.columnSpan="2" />
+                            <TableView fx:id="tablaHistHab" GridPane.rowIndex="5" GridPane.columnSpan="2" prefHeight="220">
+                            <columns>
+                                <TableColumn fx:id="colHistNumero" text="Nº" prefWidth="90"/>
+                                <TableColumn fx:id="colHistPlanta" text="Planta" prefWidth="90"/>
+                                <TableColumn fx:id="colHistDesde"  text="Desde" prefWidth="120"/>
+                                <TableColumn fx:id="colHistHasta"  text="Hasta" prefWidth="120"/>
+                                <TableColumn fx:id="colHistNotas"  text="Notas" prefWidth="300"/>
+                            </columns>
+                            </TableView>
                         </children>
                     </GridPane>
                 </content>

@@ -3,6 +3,11 @@ package es.tfg.residencias.ui.admin.residentes;
 import javafx.fxml.FXML;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import modelo.Residente;
 
 import java.time.LocalDate;
@@ -25,6 +30,7 @@ public class PanelResidenteActualControlador {
         }
         // Nada más recibir el residente, cargamos la pestaña Habitación
         cargarHabitacion();
+        cargarHistorico();
     }
 
     private void cargarHabitacion() {
@@ -58,19 +64,19 @@ public class PanelResidenteActualControlador {
 
     private String safe(String s) { return (s == null || s.isBlank()) ? "—" : s; }
     @FXML
-private void cambiarHabitacion() {
-    if (residente == null) { return; }
+        private void cambiarHabitacion() {
+            if (residente == null) { return; }
 
-    try {
-        // 1) Traer habitaciones disponibles
-        var disponibles = habitacionDAO.listarDisponibles();
-        if (disponibles.isEmpty()) {
-            // no hay libres
-            if (lblHabNumero != null) lblHabNumero.setText("—");
-            new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION,
-                "No hay habitaciones disponibles ahora mismo.").showAndWait();
-            return;
-        }
+            try {
+                // 1) Traer habitaciones disponibles
+                var disponibles = habitacionDAO.listarDisponibles();
+                if (disponibles.isEmpty()) {
+                    // no hay libres
+                    if (lblHabNumero != null) lblHabNumero.setText("—");
+                    new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION,
+                        "No hay habitaciones disponibles ahora mismo.").showAndWait();
+                    return;
+                }
 
         // 2) Mostrar selector
         var dialog = new ChoiceDialog<>(disponibles.get(0), disponibles);
@@ -95,6 +101,7 @@ private void cambiarHabitacion() {
 
         // 4) Refrescar vista
         cargarHabitacion(); // vuelve a leer y pinta número/planta/desde/notas
+        cargarHistorico();
 
         new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION,
             "Habitación cambiada a " + nueva.numero + ".").showAndWait();
@@ -103,6 +110,37 @@ private void cambiarHabitacion() {
         e.printStackTrace();
         new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR,
             "No se pudo cambiar la habitación:\n" + e.getMessage()).showAndWait();
+    }
+}
+@FXML private TableView<HabitacionDAO.HistHab> tablaHistHab;
+@FXML private TableColumn<HabitacionDAO.HistHab, String> colHistNumero, colHistPlanta, colHistDesde, colHistHasta, colHistNotas;
+
+private final ObservableList<HabitacionDAO.HistHab> datosHist = FXCollections.observableArrayList();
+
+private boolean histInit = false;
+private void initHistoricoTableIfNeeded() {
+    if (histInit || tablaHistHab == null) return;
+    colHistNumero.setCellValueFactory(new PropertyValueFactory<>("numero"));
+    colHistPlanta.setCellValueFactory(new PropertyValueFactory<>("planta"));
+    colHistDesde.setCellValueFactory(new PropertyValueFactory<>("desde"));
+    colHistHasta.setCellValueFactory(new PropertyValueFactory<>("hasta"));
+    colHistNotas.setCellValueFactory(new PropertyValueFactory<>("notas"));
+    tablaHistHab.setItems(datosHist);
+    histInit = true;
+}
+private void cargarHistorico() {
+    if (residente == null || tablaHistHab == null) return;
+    initHistoricoTableIfNeeded();
+    datosHist.clear();
+    try {
+        var lista = habitacionDAO.listarHistorico(residente.getId());
+        // pintar "—" cuando hasta sea NULL/"" (vigente)
+        for (var h : lista) {
+            var hasta = (h.hasta == null || h.hasta.isBlank()) ? "—" : h.hasta;
+            datosHist.add(new HabitacionDAO.HistHab(h.numero, h.planta, h.desde, hasta, h.notas));
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
     }
 }
 }

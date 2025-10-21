@@ -115,4 +115,44 @@ public void cambiarHabitacion(int residenteId, int nuevaHabitacionId, String sta
         }
     }
 }
+// DTO para el histórico
+public static class HistHab {
+    public final String numero, planta, desde, hasta, notas;
+    public HistHab(String numero, String planta, String desde, String hasta, String notas) {
+        this.numero = numero; this.planta = planta; this.desde = desde; this.hasta = hasta; this.notas = notas;
+    }
+    public String getNumero() { return numero; }
+    public String getPlanta() { return planta; }
+    public String getDesde()  { return desde;  }
+    public String getHasta()  { return hasta;  }
+    public String getNotas()  { return notas;  }
+}
+
+public java.util.List<HistHab> listarHistorico(int residenteId) throws Exception {
+    String sql = """
+        SELECT h.numero, h.planta, rh.start_date AS desde, rh.end_date AS hasta, rh.notas
+        FROM residente_habitacion rh
+        JOIN habitaciones h ON h.id = rh.habitacion_id
+        WHERE rh.residente_id = ?
+        ORDER BY rh.start_date DESC
+        """;
+    try (var c = ConexionBD.obtener();
+         var ps = c.prepareStatement(sql)) {
+        ps.setInt(1, residenteId);
+        try (var rs = ps.executeQuery()) {
+            var out = new java.util.ArrayList<HistHab>();
+            while (rs.next()) {
+                out.add(new HistHab(
+                    rs.getString("numero"),
+                    rs.getString("planta"),
+                    rs.getString("desde"),
+                    rs.getString("hasta"),
+                    rs.getString("notas")
+                ));
+            }
+            return out;
+        }
+    }
+}
+
 }
