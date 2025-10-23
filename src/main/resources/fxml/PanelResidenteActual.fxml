@@ -112,10 +112,29 @@
                                 <TableColumn fx:id="colDHNotas"  text="Notas" prefWidth="300"/>
                                 </columns>
                             </TableView>
-</VBox>
+                        </VBox>
                     </content>
                     </Tab>
-                <Tab text="Familia"/>
+                <Tab text="Familia">
+                    <content>
+                        <VBox spacing="10" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml">
+                        <HBox spacing="8">
+                            <Button text="Añadir" onAction="#anadirFamiliar"/>
+                            <Button text="Editar"  onAction="#editarFamiliar"/>
+                            <Button text="Borrar"  onAction="#borrarFamiliar"/>
+                        </HBox>
+
+                        <TableView fx:id="tablaFamilia" prefHeight="260">
+                            <columns>
+                            <TableColumn fx:id="colFamNombre"     text="Nombre"     prefWidth="180"/>
+                            <TableColumn fx:id="colFamUsuario"    text="Usuario"    prefWidth="140"/>
+                            <TableColumn fx:id="colFamParentesco" text="Parentesco" prefWidth="140"/>
+                            <TableColumn fx:id="colFamEmail"      text="Email"      prefWidth="220"/>
+                            </columns>
+                        </TableView>
+                        </VBox>
+                    </content>
+                    </Tab>
             </tabs>
         </TabPane>
     </center>

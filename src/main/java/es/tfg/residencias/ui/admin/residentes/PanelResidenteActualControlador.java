@@ -16,6 +16,8 @@ import dao.PrescripcionDAO;
 import dao.MedicacionDAO;
 import dao.MedicacionDAO.Medicacion;
 import dao.DietaDAO;
+import dao.FamiliarDAO;
+import dao.FamiliarDAO.FamiliarAsignado;
 
 public class PanelResidenteActualControlador {
     @FXML private Label lblTitulo;
@@ -37,6 +39,7 @@ public class PanelResidenteActualControlador {
         cargarPrescripciones();
         cargarDieta();
         cargarHistoricoDieta();
+        cargarFamilia();
         
     }
 
@@ -428,6 +431,215 @@ private void cargarHistoricoDieta() {
         }
     } catch (Exception e) {
         e.printStackTrace();
+    }
+}
+// FAMILIA ---
+@FXML private TableView<FamiliarAsignado> tablaFamilia;
+@FXML private TableColumn<FamiliarAsignado, String> colFamNombre, colFamUsuario, colFamParentesco, colFamEmail;
+
+private final FamiliarDAO familiarDAO = new FamiliarDAO();
+private final ObservableList<FamiliarAsignado> datosFamilia = FXCollections.observableArrayList();
+private boolean famInit = false;
+
+private void initFamiliaTableIfNeeded() {
+    if (famInit || tablaFamilia == null) return;
+    colFamNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
+    colFamUsuario.setCellValueFactory(new PropertyValueFactory<>("usuario"));
+    colFamParentesco.setCellValueFactory(new PropertyValueFactory<>("parentesco"));
+    colFamEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+    tablaFamilia.setItems(datosFamilia);
+    famInit = true;
+}
+
+private void cargarFamilia() {
+    if (residente == null || tablaFamilia == null) return;
+    initFamiliaTableIfNeeded();
+    datosFamilia.clear();
+    try {
+        var lista = familiarDAO.listarAsignados(residente.getId());
+        datosFamilia.addAll(lista);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+
+@FXML
+private void anadirFamiliar() {
+    if (residente == null) return;
+
+
+    var tipo = new ChoiceDialog<>(
+        "Vincular existente", FXCollections.observableArrayList("Vincular existente", "Crear nuevo")
+    );
+    tipo.setTitle("Añadir familiar");
+    tipo.setHeaderText("Elige cómo quieres añadir");
+    tipo.setContentText("Acción:");
+    var tipoRes = tipo.showAndWait();
+    if (tipoRes.isEmpty()) return;
+
+    if (tipoRes.get().equals("Vincular existente")) {
+        vincularExistente();
+    } else {
+        crearNuevoYVincular();
+    }
+}
+
+private void vincularExistente() {
+    try {
+        var noAsignados = familiarDAO.listarNoAsignados(residente.getId());
+        if (noAsignados.isEmpty()) {
+            new Alert(Alert.AlertType.INFORMATION, "No hay familiares disponibles para vincular.").showAndWait();
+            return;
+        }
+
+        var choice = new ChoiceDialog<>(noAsignados.get(0), noAsignados);
+        choice.setTitle("Vincular familiar existente");
+        choice.setHeaderText("Selecciona el familiar");
+        choice.setContentText("Familiar:");
+        var elegido = choice.showAndWait();
+        if (elegido.isEmpty()) return;
+
+        TextInputDialog inp = new TextInputDialog("");
+        inp.setTitle("Parentesco");
+        inp.setHeaderText("Indica el parentesco");
+        inp.setContentText("Parentesco:");
+        String parentesco = inp.showAndWait().orElse("");
+        familiarDAO.insertarAsignacion(residente.getId(), elegido.get().id, parentesco);
+
+        cargarFamilia();
+        new Alert(Alert.AlertType.INFORMATION, "Familiar vinculado.").showAndWait();
+    } catch (Exception e) {
+        e.printStackTrace();
+        new Alert(Alert.AlertType.ERROR, "Error al vincular:\n" + e.getMessage()).showAndWait();
+    }
+}
+
+private void crearNuevoYVincular() {
+    try {
+        Dialog<ButtonType> dlg = new Dialog<>();
+        dlg.setTitle("Crear nuevo familiar");
+        dlg.setHeaderText("Introduce los datos del nuevo familiar");
+        ButtonType guardar = new ButtonType("Crear y vincular", ButtonBar.ButtonData.OK_DONE);
+        dlg.getDialogPane().getButtonTypes().addAll(guardar, ButtonType.CANCEL);
+
+        TextField inNombre = new TextField();
+        TextField inUsuario = new TextField();
+        PasswordField inPass = new PasswordField();
+        TextField inEmail = new TextField();
+        TextField inParentesco = new TextField();
+
+        GridPane gp = new GridPane();
+        gp.setHgap(10); gp.setVgap(10); gp.setPadding(new javafx.geometry.Insets(10));
+        gp.addRow(0, new Label("Nombre:"), inNombre);
+        gp.addRow(1, new Label("Usuario:"), inUsuario);
+        gp.addRow(2, new Label("Contraseña:"), inPass);
+        gp.addRow(3, new Label("Email:"), inEmail);
+        gp.addRow(4, new Label("Parentesco:"), inParentesco);
+        dlg.getDialogPane().setContent(gp);
+
+        var btnOk = dlg.getDialogPane().lookupButton(guardar);
+        btnOk.addEventFilter(javafx.event.ActionEvent.ACTION, ev -> {
+            if (inNombre.getText().isBlank() || inUsuario.getText().isBlank() || inPass.getText().isBlank()) {
+                new Alert(Alert.AlertType.WARNING, "Nombre, usuario y contraseña son obligatorios.").showAndWait();
+                ev.consume();
+            }
+        });
+
+        var res = dlg.showAndWait();
+        if (res.isEmpty() || res.get() != guardar) return;
+
+        String hash ="HASH_PROVISIONAL";
+        int nuevoId = familiarDAO.crearFamiliar(
+            inNombre.getText().trim(),
+            inUsuario.getText().trim(),
+            hash,
+            inEmail.getText().trim()
+        );
+        familiarDAO.insertarAsignacion(residente.getId(), nuevoId, inParentesco.getText().trim());
+
+        cargarFamilia();
+        new Alert(Alert.AlertType.INFORMATION, "Familiar creado y vinculado.").showAndWait();
+    } catch (Exception e) {
+        e.printStackTrace();
+        new Alert(Alert.AlertType.ERROR, "Error al crear/vincular:\n" + e.getMessage()).showAndWait();
+    }
+}
+@FXML
+private void editarFamiliar() {
+    if (tablaFamilia == null || tablaFamilia.getSelectionModel().getSelectedItem() == null) {
+        new Alert(Alert.AlertType.INFORMATION, "Selecciona un familiar primero.").showAndWait();
+        return;
+    }
+    var sel = tablaFamilia.getSelectionModel().getSelectedItem();
+    try {
+        Dialog<ButtonType> dlg = new Dialog<>();
+        dlg.setTitle("Editar familiar");
+        dlg.setHeaderText("Modifica los datos del familiar y el parentesco");
+        ButtonType guardar = new ButtonType("Guardar", ButtonBar.ButtonData.OK_DONE);
+        dlg.getDialogPane().getButtonTypes().addAll(guardar, ButtonType.CANCEL);
+
+        TextField inNombre = new TextField(sel.getNombre());
+        TextField inUsuario = new TextField(sel.getUsuario());
+        TextField inEmail = new TextField(sel.getEmail());
+        TextField inParentesco = new TextField(sel.getParentesco());
+
+        GridPane gp = new GridPane();
+        gp.setHgap(10); gp.setVgap(10); gp.setPadding(new javafx.geometry.Insets(10));
+        gp.addRow(0, new Label("Nombre:"), inNombre);
+        gp.addRow(1, new Label("Usuario:"), inUsuario);
+        gp.addRow(2, new Label("Email:"), inEmail);
+        gp.addRow(3, new Label("Parentesco:"), inParentesco);
+        dlg.getDialogPane().setContent(gp);
+
+        var btnOk = dlg.getDialogPane().lookupButton(guardar);
+        btnOk.addEventFilter(javafx.event.ActionEvent.ACTION, ev -> {
+            if (inNombre.getText().isBlank() || inUsuario.getText().isBlank()) {
+                new Alert(Alert.AlertType.WARNING, "Nombre y usuario son obligatorios.").showAndWait();
+                ev.consume();
+            }
+        });
+
+        var res = dlg.showAndWait();
+        if (res.isEmpty() || res.get() != guardar) return;
+
+        familiarDAO.actualizarAsignado(
+            sel.getIdRelacion(),
+            sel.getIdFamiliar(),
+            inNombre.getText().trim(),
+            inUsuario.getText().trim(),
+            inEmail.getText().trim(),
+            inParentesco.getText().trim()
+        );
+
+        cargarFamilia();
+        new Alert(Alert.AlertType.INFORMATION, "Familiar actualizado.").showAndWait();
+    } catch (Exception e) {
+        e.printStackTrace();
+        new Alert(Alert.AlertType.ERROR, "Error al actualizar:\n" + e.getMessage()).showAndWait();
+    }
+}
+@FXML
+private void borrarFamiliar() {
+    if (tablaFamilia == null || tablaFamilia.getSelectionModel().getSelectedItem() == null) {
+        new Alert(Alert.AlertType.INFORMATION, "Selecciona un familiar primero.").showAndWait();
+        return;
+    }
+    var sel = tablaFamilia.getSelectionModel().getSelectedItem();
+
+    Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+    confirm.setTitle("Eliminar asignación");
+    confirm.setHeaderText("¿Quitar este familiar del residente?");
+    confirm.setContentText(sel.getNombre() + " (" + sel.getParentesco() + ")");
+    var r = confirm.showAndWait();
+    if (r.isEmpty() || r.get() != ButtonType.OK) return;
+
+    try {
+        familiarDAO.borrarAsignacion(sel.getIdRelacion());
+        cargarFamilia();
+        new Alert(Alert.AlertType.INFORMATION, "Familiar desasignado.").showAndWait();
+    } catch (Exception e) {
+        e.printStackTrace();
+        new Alert(Alert.AlertType.ERROR, "Error al desasignar:\n" + e.getMessage()).showAndWait();
     }
 }
 }
