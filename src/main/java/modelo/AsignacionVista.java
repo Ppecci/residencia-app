@@ -3,12 +3,10 @@ package modelo;
 public class AsignacionVista {
     private Integer idAsignacion;
     private Integer idResidente;
-    private String residente;   // nombre completo
-    private String inicio;      // YYYY-MM-DD
-    private String fin;         // puede ser null
-    private String notas;       // puede ser null
-
-    public AsignacionVista() {}
+    private String residente;
+    private String inicio;
+    private String fin;
+    private String notas;
 
     public Integer getIdAsignacion() { return idAsignacion; }
     public void setIdAsignacion(Integer idAsignacion) { this.idAsignacion = idAsignacion; }

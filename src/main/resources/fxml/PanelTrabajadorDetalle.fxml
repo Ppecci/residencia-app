@@ -2,18 +2,18 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="es.tfg.residencias.ui.admin.trabajadores.TrabajadorDetalleControlador"> 
+<VBox spacing="8" xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="es.tfg.residencias.ui.admin.trabajadores.TrabajadorDetalleControlador">
 
-<VBox spacing="8">
   <children>
-    <Label fx:id="lblTitulo"/>
+    <Label fx:id="lblTitulo" text="Trabajador:"/>
     <ToolBar>
-      <CheckBox fx:id="chkSoloVigentes" text="Solo vigentes" selected="true" onAction="#toggleVigentes"/>
-      <Button text="Modificar asignaciones" onAction="#abrirReasignacion"/>
+      <CheckBox fx:id="chkSoloVigentes" text="Solo vigentes" selected="true"/>
+      <Button fx:id="btnReasignar" text="Modificar asignaciones"/>
     </ToolBar>
-    <TableView fx:id="tabla">
+
+    <TableView fx:id="tabla" prefHeight="400.0">
       <columns>
         <TableColumn fx:id="colResidente" text="Residente" prefWidth="240"/>
         <TableColumn fx:id="colInicio"    text="Inicio"    prefWidth="120"/>
