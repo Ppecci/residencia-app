@@ -15,6 +15,7 @@ import dao.HabitacionDAO;
 import dao.PrescripcionDAO;
 import dao.MedicacionDAO;
 import dao.MedicacionDAO.Medicacion;
+import dao.DietaDAO;
 
 public class PanelResidenteActualControlador {
     @FXML private Label lblTitulo;
@@ -34,6 +35,8 @@ public class PanelResidenteActualControlador {
         cargarHabitacion();
         cargarHistorico();
         cargarPrescripciones();
+        cargarDieta();
+        cargarHistoricoDieta();
         
     }
 
@@ -106,7 +109,7 @@ public class PanelResidenteActualControlador {
         habitacionDAO.cambiarHabitacion(residente.getId(), nueva.id, hoy, notas);
 
         // 4) Refrescar vista
-        cargarHabitacion(); // vuelve a leer y pinta número/planta/desde/notas
+        cargarHabitacion();
         cargarHistorico();
 
         new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION,
@@ -300,5 +303,134 @@ private void finalizarPrescripcion() {
         new Alert(Alert.AlertType.ERROR, "Error al finalizar prescripción:\n" + e.getMessage()).showAndWait();
     }
 }
+// DIETA ---
+    @FXML private Label lblDietaActual, lblDietaDesde, lblDietaNotas;
+
+    private final DietaDAO dietaDAO = new DietaDAO();
+
+    private void cargarDieta() {
+        if (residente == null) return;
+
+        // valores por defecto
+        setDietaLabels("—", "—", "—");
+
+        try {
+            var opt = dietaDAO.obtenerDietaVigente(residente.getId());
+            if (opt.isPresent()) {
+                var d = opt.get(); // DietaDAO.DietaVigente
+                setDietaLabels(safe(d.nombre), safe(d.desde), safe(d.notas));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            setDietaLabels("Error", "Error", e.getMessage());
+        }
+    }
+
+    private void setDietaLabels(String nombre, String desde, String notas) {
+        if (lblDietaActual != null) lblDietaActual.setText(nombre);
+        if (lblDietaDesde  != null) lblDietaDesde.setText(desde);
+        if (lblDietaNotas  != null) lblDietaNotas.setText(notas);
+    }
+
+    @FXML
+    private void cambiarDieta() {
+        if (residente == null) return;
+
+        try {
+            // 1) Listado de dietas disponibles (catálogo)
+            var catalogo = dietaDAO.listarCatalogo();
+            if (catalogo.isEmpty()) {
+                new Alert(Alert.AlertType.INFORMATION,
+                    "No hay dietas en el catálogo. Crea alguna en 'Dietas'.").showAndWait();
+                return;
+            }
+
+            // 2) Selector
+            var dialog = new ChoiceDialog<>(catalogo.get(0), catalogo);
+            dialog.setTitle("Cambiar dieta");
+            dialog.setHeaderText("Selecciona la nueva dieta");
+            dialog.setContentText("Dieta:");
+
+            var elegido = dialog.showAndWait();
+            if (elegido.isEmpty()) return; // cancelado
+
+            var nueva = elegido.get();
+
+            // (opcional) pedir notas
+            var notasInput = new TextInputDialog("");
+            notasInput.setTitle("Cambiar dieta");
+            notasInput.setHeaderText("Notas (opcional)");
+            notasInput.setContentText("Motivo/observaciones:");
+            var notas = notasInput.showAndWait().orElse("");
+
+            // 3) Fecha desde (por defecto hoy)
+            var dp = new DatePicker(LocalDate.now());
+            var dDialog = new Dialog<ButtonType>();
+            dDialog.setTitle("Fecha de inicio de la dieta");
+            dDialog.setHeaderText("Selecciona la fecha desde la que aplica la dieta");
+            var ok = new ButtonType("Aceptar", ButtonBar.ButtonData.OK_DONE);
+            dDialog.getDialogPane().getButtonTypes().addAll(ok, ButtonType.CANCEL);
+            var gp = new GridPane();
+            gp.setHgap(10); gp.setVgap(10); gp.setPadding(new Insets(10));
+            gp.addRow(0, new Label("Desde:"), dp);
+            dDialog.getDialogPane().setContent(gp);
+            var fechaRes = dDialog.showAndWait();
+            if (fechaRes.isEmpty() || fechaRes.get() != ok) return;
+
+            String desde = (dp.getValue() != null ? dp.getValue().toString() : LocalDate.now().toString());
+
+            // 4) Ejecutar cambio (cierra vigente y abre nueva)
+            dietaDAO.cambiarDieta(residente.getId(), nueva.id, desde, notas);
+
+            // 5) Refrescar
+            cargarDieta();
+            cargarHistoricoDieta();
+
+            new Alert(Alert.AlertType.INFORMATION,
+                "Dieta cambiada a \"" + nueva.nombre + "\".").showAndWait();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR,
+                "No se pudo cambiar la dieta:\n" + e.getMessage()).showAndWait();
+        }
+    }
+    // --- DIETA HIST: UI
+@FXML private TableView<DietaDAO.HistDieta> tablaHistDieta;
+@FXML private TableColumn<DietaDAO.HistDieta, String> colDHNombre, colDHDesde, colDHHasta, colDHNotas;
+
+// --- DIETA HIST: backing list
+private final ObservableList<DietaDAO.HistDieta> datosHistDieta = FXCollections.observableArrayList();
+private boolean dietaHistInit = false;
+
+// --- DIETA HIST: init
+private void initHistDietaIfNeeded() {
+    if (dietaHistInit || tablaHistDieta == null) return;
+    colDHNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
+    colDHDesde.setCellValueFactory(new PropertyValueFactory<>("desde"));
+    colDHHasta.setCellValueFactory(new PropertyValueFactory<>("hasta"));
+    colDHNotas.setCellValueFactory(new PropertyValueFactory<>("notas"));
+    tablaHistDieta.setItems(datosHistDieta);
+    dietaHistInit = true;
 }
+
+// --- DIETA HIST: carga
+private void cargarHistoricoDieta() {
+    if (residente == null || tablaHistDieta == null) return;
+    initHistDietaIfNeeded();
+    datosHistDieta.clear();
+    try {
+        var lista = dietaDAO.listarHistorico(residente.getId());
+        for (var d : lista) {
+            // pintar "—" cuando hasta sea NULL/"" (vigente)
+            var hasta = (d.hasta == null || d.hasta.isBlank()) ? "—" : d.hasta;
+            datosHistDieta.add(new DietaDAO.HistDieta(d.nombre, d.desde, hasta, d.notas));
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+}
+
+
 

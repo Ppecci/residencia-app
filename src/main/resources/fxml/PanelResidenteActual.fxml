@@ -70,7 +70,51 @@
                         </VBox>
                     </content>
                 </Tab>
-                <Tab text="Dieta"/>
+                <Tab text="Dieta">
+                    <content>
+                        <VBox spacing="12" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml">
+                        <GridPane hgap="10" vgap="10">
+                            <columnConstraints>
+                            <ColumnConstraints halignment="RIGHT" minWidth="120"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                            </columnConstraints>
+
+                            <children>
+                            <Label text="Dieta actual:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                            <Label fx:id="lblDietaActual" text="—" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                            <Label text="Desde:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                            <Label fx:id="lblDietaDesde" text="—" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                            <Label text="Notas:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                            <Label fx:id="lblDietaNotas" text="—" wrapText="true" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                            </children>
+                        </GridPane>
+
+                        <HBox spacing="10">
+                            <Button text="Cambiar dieta…" onAction="#cambiarDieta"/>
+                        </HBox>
+                        </VBox>
+                        <VBox spacing="12" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml">
+                            <!-- ... tus GridPane con labels ... -->
+
+                            <HBox spacing="10">
+                                <Button text="Cambiar dieta…" onAction="#cambiarDieta"/>
+                            </HBox>
+
+                            <!-- Histórico -->
+                            <Label text="Histórico de dietas" style="-fx-font-weight: bold;"/>
+                            <TableView fx:id="tablaHistDieta" prefHeight="240">
+                                <columns>
+                                <TableColumn fx:id="colDHNombre" text="Dieta" prefWidth="180"/>
+                                <TableColumn fx:id="colDHDesde"  text="Desde" prefWidth="120"/>
+                                <TableColumn fx:id="colDHHasta"  text="Hasta" prefWidth="120"/>
+                                <TableColumn fx:id="colDHNotas"  text="Notas" prefWidth="300"/>
+                                </columns>
+                            </TableView>
+</VBox>
+                    </content>
+                    </Tab>
                 <Tab text="Familia"/>
             </tabs>
         </TabPane>
