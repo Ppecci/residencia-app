@@ -10,7 +10,7 @@
             <children>
                 <Label text="Residencia Los Sauces" style="-fx-text-fill: white; -fx-font-size: 16; -fx-padding: 16 12 16 12;" />
                 <Button text="Residentes" fx:id="btnResidentes" onAction="#abrirResidentes" prefWidth="200"/>
-                <Button text="Empleados" onAction="#abrirEmpleados" prefWidth="200"/>
+                <Button text="Trabajadores" onAction="#abrirEmpleados" prefWidth="200"/>
                 <Button text="Familiares" onAction="#abrirFamiliares" prefWidth="200"/>
                 <Button text="Habitaciones" onAction="#abrirHabitaciones" prefWidth="200"/>
                 <Separator/>

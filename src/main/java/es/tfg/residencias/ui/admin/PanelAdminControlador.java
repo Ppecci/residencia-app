@@ -25,7 +25,7 @@ public class PanelAdminControlador {
     @FXML
     private void abrirEmpleados() {
         // Carga un FXML real que YA tienes para verificar que cargarEnCentro funciona
-        cargarEnCentro("/fxml/PanelTrabajador.fxml");
+        cargarEnCentro("/fxml/TrabajadoresVista.fxml");
     }
 
     @FXML

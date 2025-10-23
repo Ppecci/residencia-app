@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="es.tfg.residencias.ui.admin.trabajadores.TrabajadorDetalleControlador"> 
+
+<VBox spacing="8">
+  <children>
+    <Label fx:id="lblTitulo"/>
+    <ToolBar>
+      <CheckBox fx:id="chkSoloVigentes" text="Solo vigentes" selected="true" onAction="#toggleVigentes"/>
+      <Button text="Modificar asignaciones" onAction="#abrirReasignacion"/>
+    </ToolBar>
+    <TableView fx:id="tabla">
+      <columns>
+        <TableColumn fx:id="colResidente" text="Residente" prefWidth="240"/>
+        <TableColumn fx:id="colInicio"    text="Inicio"    prefWidth="120"/>
+        <TableColumn fx:id="colFin"       text="Fin"       prefWidth="120"/>
+        <TableColumn fx:id="colNotas"     text="Notas"     prefWidth="260"/>
+      </columns>
+    </TableView>
+  </children>
+</VBox>
