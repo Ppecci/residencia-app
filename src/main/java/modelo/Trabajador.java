@@ -24,4 +24,11 @@ public class Trabajador {
 
     public String getPasswordHashTemporal() { return passwordHashTemporal; }
     public void setPasswordHashTemporal(String passwordHashTemporal) { this.passwordHashTemporal = passwordHashTemporal; }
+
+     @Override
+    public String toString() {
+        // Muestra “Nombre (usuario)”
+        String u = (usuario == null || usuario.isBlank()) ? "" : " (" + usuario + ")";
+        return (nombre == null ? "" : nombre) + u;
+}
 }

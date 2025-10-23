@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<DialogPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="es.tfg.residencias.ui.admin.trabajadores.ReasignarAsignacionesControlador"
+            fx:id="dialogPane">
+
+  <content>
+    <VBox spacing="10.0">
+      <padding>
+        <Insets topRightBottomLeft="12.0"/>
+      </padding>
+      <children>
+        <Label fx:id="lblTitulo" text="Reasignación de asignaciones"/>
+
+        <GridPane hgap="8.0" vgap="8.0">
+          <columnConstraints>
+            <ColumnConstraints percentWidth="30.0"/>
+            <ColumnConstraints percentWidth="70.0"/>
+          </columnConstraints>
+          <children>
+            <Label text="Sustituido:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <TextField fx:id="inSustituido" editable="false" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+            <Label text="Sustituto:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+            <ComboBox fx:id="cbSustituto" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+            <Label text="Inicio:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+            <DatePicker fx:id="dpInicio" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+            <Label text="Fin (opcional):" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+            <DatePicker fx:id="dpFin" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+            <CheckBox fx:id="chkTodos" text="Todos los vigentes" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+          </children>
+        </GridPane>
+
+        <Label text="Selecciona residentes vigentes:"/>
+        <TableView fx:id="tablaVigentes" prefHeight="260.0">
+          <columns>
+            <TableColumn fx:id="colResidente" text="Residente" prefWidth="280.0"/>
+            <TableColumn fx:id="colInicio" text="Inicio actual" prefWidth="120.0"/>
+          </columns>
+        </TableView>
+
+        <HBox spacing="8.0" alignment="CENTER_RIGHT">
+          <Button text="Cancelar" onAction="#cancelar"/>
+          <Button text="Aceptar" onAction="#aceptar"/>
+        </HBox>
+      </children>
+    </VBox>
+  </content>
+
+</DialogPane>

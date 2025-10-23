@@ -79,4 +79,29 @@ public class TrabajadoresDAO {
             ps.executeUpdate();
         }
     }
+   
+// --- NUEVO: lista trabajadores activos excepto el dado ---
+    public java.util.List<modelo.Trabajador> listarActivosExcepto(int idExcluir) throws Exception {
+    String sql = "SELECT id, nombre, usuario, email, activo " +
+                 "FROM trabajadores " +
+                 "WHERE activo = 1 AND id <> ? " +
+                 "ORDER BY nombre";
+    java.util.List<modelo.Trabajador> out = new java.util.ArrayList<>();
+    try (java.sql.Connection c = bd.ConexionBD.obtener();
+         java.sql.PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setInt(1, idExcluir);
+        try (java.sql.ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                out.add(new modelo.Trabajador(
+                        rs.getInt("id"),
+                        rs.getString("nombre"),
+                        rs.getString("usuario"),
+                        rs.getString("email"),
+                        rs.getInt("activo") == 1
+                ));
+            }
+        }
+    }
+    return out;
+}
 }

@@ -6,6 +6,7 @@ import modelo.Trabajador;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -60,14 +61,52 @@ public class TrabajadorDetalleControlador {
 
     private void toggleVigentes(ActionEvent e) { cargar(); }
 
-    private void abrirReasignacion(ActionEvent e) {
-        // TODO: abrir diálogo real; por ahora no rompemos nada
-        Alert a = new Alert(Alert.AlertType.INFORMATION, "Reasignación pendiente de implementar", ButtonType.OK);
-        a.setHeaderText(null); a.showAndWait();
-    }
+  @FXML
+private void abrirReasignacion(javafx.event.ActionEvent e) {
+    try {
+        final String RUTA = "/fxml/ReasignarAsignaciones.fxml";
+        System.out.println("[DEBUG] Cargando FXML: " + RUTA);
 
-    private void alertError(String h, String d) {
-        Alert a = new Alert(Alert.AlertType.ERROR, d, ButtonType.OK);
-        a.setHeaderText(h); a.showAndWait();
+        var url = getClass().getResource(RUTA);
+        if (url == null) {
+            alertError("FXML no encontrado",
+                    "Ruta: " + RUTA + "\nUbícalo en src/main/resources/fxml/ReasignarAsignaciones.fxml");
+            return;
+        }
+        System.out.println("[DEBUG] URL: " + url);
+
+        FXMLLoader loader = new FXMLLoader(url);
+        DialogPane root = loader.load(); // IMPORTANTE: DialogPane como root
+
+        Object ctrl = loader.getController();
+        System.out.println("[DEBUG] Controller: " + (ctrl == null ? "null" : ctrl.getClass().getName()));
+
+        if (!(ctrl instanceof ReasignarAsignacionesControlador)) {
+            alertError("Controller inesperado",
+                    "Esperaba ReasignarAsignacionesControlador, obtuve: "
+                    + (ctrl == null ? "null" : ctrl.getClass().getName()));
+            return;
+        }
+
+        ReasignarAsignacionesControlador c = (ReasignarAsignacionesControlador) ctrl;
+        c.setTrabajador(trabajador); // pasa el trabajador actual
+
+        Dialog<Void> dlg = new Dialog<>();
+        dlg.setTitle("Reasignar residentes");
+        dlg.setDialogPane(root);
+        dlg.initOwner(lblTitulo.getScene().getWindow());
+        dlg.showAndWait();
+
+        cargar(); // refrescar al cerrar
+
+    } catch (Exception ex) {
+        ex.printStackTrace(); // verás la causa real en la consola
+        alertError("No se pudo abrir el diálogo", String.valueOf(ex));
     }
+}
+
+private void alertError(String h, String d) {
+    Alert a = new Alert(Alert.AlertType.ERROR, d, ButtonType.OK);
+    a.setHeaderText(h); a.showAndWait();
+}
 }
