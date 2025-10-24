@@ -1,6 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-    <center><Label text="Panel (pendiente de implementar)"/></center>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="es.tfg.residencias.ui.trabajador.PanelTrabajadorControlador">
+
+    <!-- Barra superior -->
+    <top>
+        <ToolBar>
+            <Label fx:id="lblTitulo" text="Trabajador: —" />
+            <Pane HBox.hgrow="ALWAYS"/>
+            <TextField fx:id="txtBuscar" promptText="Buscar por nombre/apellidos/nº habitación" prefWidth="320"/>
+            <Button text="Buscar"    onAction="#buscar"/>
+            <Button text="Refrescar" onAction="#refrescar"/>
+            <Separator/>
+            <Button fx:id="btnEditarPrescripciones" text="Editar prescripciones" onAction="#editarPrescripciones"/>
+            <Button fx:id="btnEditarDieta"          text="Editar dieta"          onAction="#editarDieta"/>
+            <Button fx:id="btnCitas"                 text="Citas médicas"         onAction="#gestionarCitas"/>
+            <Button text="Ver detalle" onAction="#verDetalle"/>
+            <Separator/>
+            <Button text="Cerrar sesión" onAction="#cerrarSesion"/>
+        </ToolBar>
+    </top>
+
+    <!-- Tabla central -->
+    <center>
+        <TableView fx:id="tabla">
+            <columns>
+                <TableColumn fx:id="colResidenteId"    text="ID Residente"    prefWidth="100"/>
+                <TableColumn fx:id="colNombre"         text="Nombre"          prefWidth="160"/>
+                <TableColumn fx:id="colApellidos"      text="Apellidos"       prefWidth="200"/>
+                <TableColumn fx:id="colHabId"          text="ID Hab."         prefWidth="80"/>
+                <TableColumn fx:id="colHabNumero"      text="Número"          prefWidth="120"/>
+                <TableColumn fx:id="colHabPlanta"      text="Planta"          prefWidth="100"/>
+                <TableColumn fx:id="colMedicacion"     text="Medicación (resumen)" prefWidth="320"/>
+                <TableColumn fx:id="colDietaId"        text="Dieta ID"        prefWidth="100"/>
+                <TableColumn fx:id="colDietaNotas"     text="Notas dieta"     prefWidth="220"/>
+                <TableColumn fx:id="colProximaCita"    text="Próxima cita"    prefWidth="150"/>
+            </columns>
+        </TableView>
+    </center>
+
+    <padding>
+        <Insets top="8" right="8" bottom="8" left="8"/>
+    </padding>
 </BorderPane>
