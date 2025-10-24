@@ -228,35 +228,53 @@ public class PanelTrabajadorControlador {
             }
 
 
-            @javafx.fxml.FXML
-        private void cerrarSesion(javafx.event.ActionEvent e) {
-            try {
-                // --- Limpieza de sesión ---
-                trabajadorId = null;
-                nombreTrabajador = null;
+           @FXML
+            private void cerrarSesion(javafx.event.ActionEvent e) {
+                // --- Diálogo de confirmación ---
+                javafx.scene.control.Alert alerta = new javafx.scene.control.Alert(
+                        javafx.scene.control.Alert.AlertType.CONFIRMATION,
+                        "¿Seguro que quieres cerrar sesión?",
+                        javafx.scene.control.ButtonType.YES,
+                        javafx.scene.control.ButtonType.NO
+                );
+                alerta.setHeaderText("Cerrar sesión");
+                alerta.setTitle("Confirmar");
 
-                // --- Volver al login ---
-                java.net.URL url = getClass().getResource("/fxml/AccesoVista.fxml");
-                if (url == null) {
-                    error("FXML no encontrado", "/fxml/AccesoVista.fxml");
+                java.util.Optional<javafx.scene.control.ButtonType> resultado = alerta.showAndWait();
+                if (resultado.isEmpty() || resultado.get() != javafx.scene.control.ButtonType.YES) {
+                    // Si el usuario cancela, no hacemos nada
                     return;
                 }
 
-                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(url);
-                javafx.scene.Parent root = loader.load();
+                try {
+                    // --- Limpieza de sesión ---
+                    trabajadorId = null;
+                    nombreTrabajador = null;
+                    datos.clear();
 
-                javafx.stage.Stage stage = (javafx.stage.Stage)
-                        ((javafx.scene.Node) e.getSource()).getScene().getWindow();
+                    // --- Volver al login ---
+                    java.net.URL url = getClass().getResource("/fxml/AccesoVista.fxml");
+                    if (url == null) {
+                        error("FXML no encontrado", "/fxml/AccesoVista.fxml");
+                        return;
+                    }
 
-                stage.setScene(new javafx.scene.Scene(root));
-                stage.setTitle("Acceso al sistema");
-                stage.show();
+                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(url);
+                    javafx.scene.Parent root = loader.load();
 
-            } catch (Exception ex) {
-                error("No se pudo volver al login",
-                    ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                    javafx.stage.Stage stage = (javafx.stage.Stage)
+                            ((javafx.scene.Node) e.getSource()).getScene().getWindow();
+
+                    stage.setScene(new javafx.scene.Scene(root));
+                    stage.setTitle("Acceso al sistema");
+                    stage.show();
+
+                } catch (Exception ex) {
+                    error("No se pudo volver al login",
+                        ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                }
             }
-        }
+
 
 
     /* ==== Helpers ==== */
