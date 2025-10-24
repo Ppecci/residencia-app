@@ -132,12 +132,31 @@ public class PanelTrabajadorControlador {
     }
 
     @FXML
-    private void editarPrescripciones() {
-        TrabajadorResumenFila fila = tabla.getSelectionModel().getSelectedItem();
-        if (fila == null) { info("Selecciona un residente."); return; }
-        // TODO: abrir diálogo CRUD de prescripciones para fila.getResidenteId()
-        info("Abrir diálogo de Prescripciones para residente id=" + fila.getResidenteId());
-    }
+        private void editarPrescripciones() {
+            var fila = tabla.getSelectionModel().getSelectedItem();
+            if (fila == null) { info("Selecciona un residente."); return; }
+
+            try {
+                javafx.fxml.FXMLLoader loader =
+                        new javafx.fxml.FXMLLoader(getClass().getResource("/fxml/DialogoPrescripciones.fxml"));
+
+                javafx.scene.Parent root = loader.load();
+
+                es.tfg.residencias.ui.trabajador.DialogoPrescripcionesControlador ctrl = loader.getController();
+                String nombreCompleto = fila.getNombre() + (fila.getApellidos() != null ? " " + fila.getApellidos() : "");
+                ctrl.setResidente(fila.getResidenteId(), nombreCompleto);
+
+                javafx.stage.Stage st = new javafx.stage.Stage();
+                st.setTitle("Prescripciones — " + nombreCompleto);
+                st.setScene(new javafx.scene.Scene(root));  // ahora sí: Scene(Parent)
+                st.initOwner(tabla.getScene().getWindow());
+                st.showAndWait();
+
+                refrescar();
+            } catch (Exception e) {
+                error("No se pudo abrir el diálogo de prescripciones", e.getMessage());
+            }
+        }
 
     @FXML
     private void editarDieta() {

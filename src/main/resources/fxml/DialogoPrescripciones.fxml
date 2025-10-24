@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="es.tfg.residencias.ui.trabajador.DialogoPrescripcionesControlador">
+
+    <!-- Barra superior -->
+    <top>
+        <ToolBar>
+            <Label fx:id="lblTitulo" text="Prescripciones — Residente: " />
+            <Pane HBox.hgrow="ALWAYS"/>
+            <Button text="Refrescar" onAction="#refrescar"/>
+            <Separator/>
+            <Button text="Nueva"     onAction="#nueva"/>
+            <Button text="Editar"    onAction="#editar"/>
+            <Button text="Finalizar" onAction="#finalizar"/>
+            <Separator/>
+            <Button text="Guardar"   onAction="#guardar"/>
+            <Button text="Cerrar"    onAction="#cerrar"/>
+        </ToolBar>
+    </top>
+
+    <!-- Contenido central: pestañas -->
+    <center>
+        <TabPane fx:id="tabs">
+            <tabs>
+                <!-- Prescripciones activas -->
+                <Tab text="Activas">
+                    <BorderPane>
+                        <center>
+                            <TableView fx:id="tablaActivas">
+                                <columns>
+                                    <TableColumn fx:id="colA_Med"   text="Medicación" prefWidth="260"/>
+                                    <TableColumn fx:id="colA_Dosis" text="Dosis"      prefWidth="120"/>
+                                    <TableColumn fx:id="colA_Frec"  text="Frecuencia" prefWidth="140"/>
+                                    <TableColumn fx:id="colA_Via"   text="Vía"        prefWidth="100"/>
+                                    <TableColumn fx:id="colA_Desde" text="Desde"      prefWidth="110"/>
+                                    <TableColumn fx:id="colA_Notas" text="Notas"      prefWidth="240"/>
+                                </columns>
+                            </TableView>
+                        </center>
+                    </BorderPane>
+                </Tab>
+
+                <!-- Histórico -->
+                <Tab text="Histórico">
+                    <BorderPane>
+                        <center>
+                            <TableView fx:id="tablaHist">
+                                <columns>
+                                    <TableColumn fx:id="colH_Med"   text="Medicación" prefWidth="260"/>
+                                    <TableColumn fx:id="colH_Dosis" text="Dosis"      prefWidth="120"/>
+                                    <TableColumn fx:id="colH_Frec"  text="Frecuencia" prefWidth="140"/>
+                                    <TableColumn fx:id="colH_Via"   text="Vía"        prefWidth="100"/>
+                                    <TableColumn fx:id="colH_Desde" text="Desde"      prefWidth="110"/>
+                                    <TableColumn fx:id="colH_Hasta" text="Hasta"      prefWidth="110"/>
+                                    <TableColumn fx:id="colH_Notas" text="Notas"      prefWidth="240"/>
+                                </columns>
+                            </TableView>
+                        </center>
+                    </BorderPane>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </center>
+
+    <!-- Formulario inferior -->
+    <bottom>
+        <GridPane hgap="8" vgap="8">
+            <padding>
+                <Insets top="10" right="8" bottom="8" left="8"/>
+            </padding>
+
+            <columnConstraints>
+                <ColumnConstraints percentWidth="16"/>
+                <ColumnConstraints percentWidth="34"/>
+                <ColumnConstraints percentWidth="16"/>
+                <ColumnConstraints percentWidth="34"/>
+            </columnConstraints>
+
+            <children>
+                <Label text="Medicación:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <ComboBox fx:id="cbMedicacion" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                <Label text="Dosis:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <TextField fx:id="inDosis" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                <Label text="Frecuencia:" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                <TextField fx:id="inFrecuencia" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+
+                <Label text="Vía:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <TextField fx:id="inVia" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                <Label text="Inicio (YYYY-MM-DD):" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+                <TextField fx:id="inDesde" GridPane.rowIndex="2" GridPane.columnIndex="3"/>
+
+                <Label text="Notas:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <TextField fx:id="inNotas" GridPane.rowIndex="3" GridPane.columnIndex="1" GridPane.columnSpan="3"/>
+            </children>
+        </GridPane>
+    </bottom>
+
+</BorderPane>
