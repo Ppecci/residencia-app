@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="es.tfg.residencias.ui.admin.habitaciones.HabitacionesControlador">
+
+  <top>
+    <!-- TOP -->
+<ToolBar>
+  <TextField fx:id="txtBuscar" promptText="Buscar número/planta/residente"/>
+  <ComboBox fx:id="cbModo" prefWidth="140"/>
+  <Button text="Buscar" onAction="#buscar"/>
+  <Button text="Refrescar" onAction="#refrescar"/>
+</ToolBar>
+  </top>
+
+  <center>
+    <TableView fx:id="tabla">
+    <columns>
+        <TableColumn fx:id="colHabId"        text="ID"             prefWidth="70"/>
+        <TableColumn fx:id="colNumero"       text="Número"         prefWidth="140"/>
+        <TableColumn fx:id="colPlanta"       text="Planta"         prefWidth="120"/>
+        <TableColumn fx:id="colResidenteId"  text="ID Residente"   prefWidth="110"/>
+        <TableColumn fx:id="colNombre"       text="Nombre"         prefWidth="180"/>
+        <TableColumn fx:id="colApellidos"    text="Apellidos"      prefWidth="220"/>
+    </columns>
+    </TableView>
+  </center>
+
+  <bottom>
+    <ToolBar>
+      <TextField fx:id="inNumero" promptText="Número (único)"/>
+      <TextField fx:id="inPlanta" promptText="Planta"/>
+      <Label text="(ej.: 101, 2A… · Planta: 1ª, 2ª, Baja)"/>
+    </ToolBar>
+  </bottom>
+
+</BorderPane>

@@ -38,8 +38,8 @@ public class PanelAdminControlador {
 
     @FXML
     private void abrirHabitaciones() {
-        // Aún sin FXML propio -> placeholder
-        contenedorCentro.getChildren().setAll(new javafx.scene.control.Label("Pendiente de implementar (Habitaciones)"));
+        cargarEnCentro("/fxml/PanelHabitaciones.fxml");
+     
     }
 
     @FXML
