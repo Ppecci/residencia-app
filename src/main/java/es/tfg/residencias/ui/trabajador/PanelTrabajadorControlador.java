@@ -159,21 +159,84 @@ public class PanelTrabajadorControlador {
         }
 
     @FXML
-    private void editarDieta() {
-        TrabajadorResumenFila fila = tabla.getSelectionModel().getSelectedItem();
-        if (fila == null) { info("Selecciona un residente."); return; }
-        // TODO: abrir diálogo de cambio de dieta (cerrar vigente y abrir nueva)
-        info("Abrir diálogo de Dieta para residente id=" + fila.getResidenteId());
-    }
+        private void editarDieta() {
+                var fila = tabla.getSelectionModel().getSelectedItem();
+                if (fila == null) { info("Selecciona un residente."); return; }
 
-    @FXML
-    private void gestionarCitas() {
-        TrabajadorResumenFila fila = tabla.getSelectionModel().getSelectedItem();
-        if (fila == null) { info("Selecciona un residente."); return; }
-        // TODO: abrir diálogo de citas médicas (listado + CRUD)
-        info("Abrir diálogo de Citas para residente id=" + fila.getResidenteId());
-    }
+                try {
+                    java.net.URL url = getClass().getResource("/fxml/DialogoDieta.fxml");
+                    if (url == null) {
+                        error("FXML no encontrado", "/fxml/DialogoDieta.fxml");
+                        return;
+                    }
+                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(url);
+                    javafx.scene.Parent root = loader.load();
 
+                    var ctrl = (es.tfg.residencias.ui.trabajador.DialogoDietaControlador) loader.getController();
+                    String nombreCompleto = fila.getNombre() + (fila.getApellidos() != null ? " " + fila.getApellidos() : "");
+                    // pasamos también lo que sabemos en la tabla (por si quieres usarlo); dentro el controlador vuelve a consultar la vigente
+                    ctrl.setResidente(fila.getResidenteId(), nombreCompleto, fila.getDietaId(), fila.getDietaNotas());
+
+                    javafx.stage.Stage st = new javafx.stage.Stage();
+                    st.setTitle("Cambiar dieta — " + nombreCompleto);
+                    st.setScene(new javafx.scene.Scene(root));
+                    st.initOwner(tabla.getScene().getWindow());
+                    st.showAndWait();
+
+                    // al cerrar, refrescamos para actualizar "Dieta ID" y "Notas dieta"
+                    refrescar();
+
+                } catch (Exception e) {
+                    error("No se pudo abrir el diálogo de dieta", e.getClass().getSimpleName() + ": " + e.getMessage());
+                }
+            }
+
+            @FXML
+            private void gestionarCitas() {
+                var fila = tabla.getSelectionModel().getSelectedItem();
+                if (fila == null) { 
+                    info("Selecciona un residente."); 
+                    return; 
+                }
+
+                try {
+                    // Usa la misma convención de rutas que tu diálogo de dieta
+                    java.net.URL url = getClass().getResource("/fxml/DialogoCitas.fxml");
+                    if (url == null) {
+                        error("FXML no encontrado", "/fxml/DialogoCitas.fxml");
+                        return;
+                    }
+
+                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(url);
+                    javafx.scene.Parent root = loader.load();
+
+                    // Controlador del diálogo
+                    es.tfg.residencias.ui.trabajador.DialogoCitasControlador ctrl =
+                            loader.getController();
+
+                    String nombreCompleto = fila.getNombre() + 
+                            (fila.getApellidos() != null ? " " + fila.getApellidos() : "");
+
+                    ctrl.setResidente(fila.getResidenteId(), nombreCompleto);
+
+                    
+                    javafx.stage.Stage st = new javafx.stage.Stage();
+                    st.setTitle("Citas médicas — " + nombreCompleto);
+                    st.setScene(new javafx.scene.Scene(root));
+                    st.initOwner(tabla.getScene().getWindow());
+                    st.initModality(javafx.stage.Modality.WINDOW_MODAL);
+                    st.showAndWait();
+
+                    // refresca la tabla principal
+                    refrescar();
+
+                } catch (Exception e) {
+                    error("No se pudo abrir el diálogo de citas", e.getClass().getSimpleName() + ": " + e.getMessage());
+                }
+            }
+
+
+   
     @FXML
     private void verDetalle() {
         TrabajadorResumenFila fila = tabla.getSelectionModel().getSelectedItem();

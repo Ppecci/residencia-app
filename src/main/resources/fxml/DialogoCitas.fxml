@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="es.tfg.residencias.ui.trabajador.DialogoCitasControlador">
+
+    <top>
+        <ToolBar>
+            <Label fx:id="lblTitulo" text="Citas médicas — Residente:" />
+            <Pane HBox.hgrow="ALWAYS"/>
+            <Button text="Agregar" onAction="#agregar"/>
+            <Button text="Editar"  onAction="#editar"/>
+            <Button text="Eliminar" onAction="#eliminar"/>
+            <Separator orientation="VERTICAL"/>
+            <Button text="Cerrar"  onAction="#cerrar"/>
+        </ToolBar>
+    </top>
+
+    <center>
+        <VBox spacing="10">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+
+            <TableView fx:id="tabla" prefHeight="260">
+                <columns>
+                    <TableColumn fx:id="colFecha"        text="Fecha/Hora"   prefWidth="160"/>
+                    <TableColumn fx:id="colEspecialidad"  text="Especialidad" prefWidth="150"/>
+                    <TableColumn fx:id="colLugar"         text="Lugar"        prefWidth="150"/>
+                    <TableColumn fx:id="colEstado"        text="Estado"       prefWidth="120"/>
+                    <TableColumn fx:id="colNotas"         text="Notas"        prefWidth="240"/>
+                </columns>
+            </TableView>
+
+            <TitledPane text="Formulario" expanded="true">
+                <content>
+                    <GridPane hgap="8" vgap="8">
+                        <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="20"/>
+                            <ColumnConstraints percentWidth="30"/>
+                            <ColumnConstraints percentWidth="20"/>
+                            <ColumnConstraints percentWidth="30"/>
+                        </columnConstraints>
+
+                        <children>
+                            <Label text="Fecha:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                            <DatePicker fx:id="inFecha" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                            <Label text="Hora (HH:mm):" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                            <TextField fx:id="inHora" GridPane.rowIndex="0" GridPane.columnIndex="3"/>
+
+                            <Label text="Especialidad:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                            <TextField fx:id="inEspecialidad" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                            <Label text="Lugar:" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                            <TextField fx:id="inLugar" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+
+                            <Label text="Estado:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                            <ComboBox fx:id="cbEstado" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                            <Label text="Notas:" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+                            <TextField fx:id="inNotas" GridPane.rowIndex="2" GridPane.columnIndex="3"/>
+                        </children>
+                    </GridPane>
+                </content>
+            </TitledPane>
+        </VBox>
+    </center>
+</BorderPane>
