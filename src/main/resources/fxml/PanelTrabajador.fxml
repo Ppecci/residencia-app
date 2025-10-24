@@ -19,7 +19,6 @@
             <Button fx:id="btnEditarPrescripciones" text="Editar prescripciones" onAction="#editarPrescripciones"/>
             <Button fx:id="btnEditarDieta"          text="Editar dieta"          onAction="#editarDieta"/>
             <Button fx:id="btnCitas"                 text="Citas médicas"         onAction="#gestionarCitas"/>
-            <Button text="Ver detalle" onAction="#verDetalle"/>
             <Separator/>
             <Button text="Cerrar sesión" onAction="#cerrarSesion"/>
         </ToolBar>

@@ -41,7 +41,7 @@ public class PanelTrabajadorControlador {
         colHabNumero.setCellValueFactory(  new PropertyValueFactory<>("habNumero"));
         colHabPlanta.setCellValueFactory(  new PropertyValueFactory<>("habPlanta"));
 
-        // IMPORTANTE: usar "medicacionResumen" (el DTO también tiene alias getMedicionResumen())
+        // IMPORTANTE: usar "medicacionResumen" el DTO también tiene alias getMedicionResumen())
         colMedicacion.setCellValueFactory( new PropertyValueFactory<>("medicacionResumen"));
 
         colDietaId.setCellValueFactory(    new PropertyValueFactory<>("dietaId"));
@@ -51,14 +51,6 @@ public class PanelTrabajadorControlador {
 
         tabla.setItems(datos);
 
-        // Doble clic: ver detalle (opcional)
-        tabla.setRowFactory(tv -> {
-            TableRow<TrabajadorResumenFila> row = new TableRow<>();
-            row.setOnMouseClicked(ev -> {
-                if (ev.getClickCount() == 2 && !row.isEmpty()) verDetalle();
-            });
-            return row;
-        });
 
         // Deshabilita botones de edición si no hay selección
         tabla.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
@@ -236,20 +228,36 @@ public class PanelTrabajadorControlador {
             }
 
 
-   
-    @FXML
-    private void verDetalle() {
-        TrabajadorResumenFila fila = tabla.getSelectionModel().getSelectedItem();
-        if (fila == null) { info("Selecciona un residente."); return; }
-        // TODO: navegar a una vista de detalle del residente con históricos
-        info("Abrir detalle de residente id=" + fila.getResidenteId());
-    }
+            @javafx.fxml.FXML
+        private void cerrarSesion(javafx.event.ActionEvent e) {
+            try {
+                // --- Limpieza de sesión ---
+                trabajadorId = null;
+                nombreTrabajador = null;
 
-    @FXML
-    private void cerrarSesion() {
-        // TODO: implementar navegación de vuelta al login/selector
-        info("Cerrar sesión (implementar navegación a login).");
-    }
+                // --- Volver al login ---
+                java.net.URL url = getClass().getResource("/fxml/AccesoVista.fxml");
+                if (url == null) {
+                    error("FXML no encontrado", "/fxml/AccesoVista.fxml");
+                    return;
+                }
+
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(url);
+                javafx.scene.Parent root = loader.load();
+
+                javafx.stage.Stage stage = (javafx.stage.Stage)
+                        ((javafx.scene.Node) e.getSource()).getScene().getWindow();
+
+                stage.setScene(new javafx.scene.Scene(root));
+                stage.setTitle("Acceso al sistema");
+                stage.show();
+
+            } catch (Exception ex) {
+                error("No se pudo volver al login",
+                    ex.getClass().getSimpleName() + ": " + ex.getMessage());
+            }
+        }
+
 
     /* ==== Helpers ==== */
 
