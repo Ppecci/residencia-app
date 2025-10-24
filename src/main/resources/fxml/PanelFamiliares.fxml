@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="es.tfg.residencias.ui.admin.familiares.FamiliaresControlador">
+
+  <top>
+    <ToolBar>
+      <TextField fx:id="txtBuscar" promptText="Buscar por nombre, usuario o email"/>
+      <Button text="Buscar" onAction="#buscar"/>
+      <Button text="Refrescar" onAction="#refrescar"/>
+      <Separator/>
+      <Button text="Nuevo" onAction="#nuevo"/>
+      <Button text="Editar" onAction="#editar"/>
+      <Button text="Guardar" onAction="#guardar"/>
+      <Button text="Eliminar" onAction="#eliminar"/>
+      <Separator/>
+      <Button text="Ver detalle" onAction="#verDetalle"/>
+    </ToolBar>
+  </top>
+
+  <center>
+    <TableView fx:id="tabla">
+      <columns>
+        <TableColumn fx:id="colId"      text="ID"       prefWidth="60"/>
+        <TableColumn fx:id="colNombre"  text="Nombre"   prefWidth="220"/>
+        <TableColumn fx:id="colUsuario" text="Usuario"  prefWidth="160"/>
+        <TableColumn fx:id="colEmail"   text="Email"    prefWidth="240"/>
+      </columns>
+    </TableView>
+  </center>
+
+  <bottom>
+    <ToolBar>
+      <TextField fx:id="inNombre"   promptText="Nombre"/>
+      <TextField fx:id="inUsuario"  promptText="Usuario"/>
+      <PasswordField fx:id="inPassword" promptText="Contraseña (solo alta)"/>
+      <TextField fx:id="inEmail"    promptText="Email"/>
+    </ToolBar>
+  </bottom>
+
+</BorderPane>

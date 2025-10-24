@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="8" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="es.tfg.residencias.ui.admin.familiares.FamiliarDetalleControlador">
+  <children>
+    <Label fx:id="lblTitulo" text="Familiar:"/>
+    <TableView fx:id="tabla" prefHeight="420">
+      <columns>
+        <TableColumn fx:id="colResidente"  text="Residente"  prefWidth="320"/>
+        <TableColumn fx:id="colParentesco" text="Parentesco" prefWidth="180"/>
+      </columns>
+    </TableView>
+  </children>
+</VBox>

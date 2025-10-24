@@ -3,6 +3,7 @@ package dao;
 import bd.ConexionBD;
 import java.sql.*;
 import java.util.*;
+import modelo.Familiar;
 
 public class FamiliarDAO {
 
@@ -181,6 +182,107 @@ public class FamiliarDAO {
              PreparedStatement ps = c.prepareStatement("DELETE FROM residente_familiar WHERE id = ?")) {
             ps.setInt(1, idRelacion);
             ps.executeUpdate();
+        }
+    }
+    /* ==================================================================
+     * MÉTODOS CRUD PARA EL PANEL DE ADMINISTRACIÓN DE FAMILIARES
+     * (Estos son los métodos que te faltaban)
+     * ================================================================== */
+
+    /**
+     * Lista TODOS los familiares para el panel de admin, con filtro por nombre.
+     * @param filtro Texto para buscar por nombre (si es null o vacío, los trae todos)
+     * @return Lista de objetos Familiar
+     */
+    public List<Familiar> listar(String filtro) throws Exception {
+        // El modelo Familiar debe tener un constructor que acepte (id, nombre, usuario, email)
+        String sql = "SELECT id, nombre, usuario, email FROM familiares";
+        
+        // Añadir filtro si existe
+        if (filtro != null && !filtro.isBlank()) {
+            sql += " WHERE nombre LIKE ?";
+        }
+        sql += " ORDER BY nombre";
+
+        try (Connection c = ConexionBD.obtener();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            
+            if (filtro != null && !filtro.isBlank()) {
+                ps.setString(1, "%" + filtro + "%");
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                List<Familiar> out = new ArrayList<>();
+                while (rs.next()) {
+                    out.add(new Familiar(
+                        rs.getInt("id"),
+                        rs.getString("nombre"),
+                        rs.getString("usuario"),
+                        rs.getString("email")
+                        // Nota: No se carga el hash de la contraseña por seguridad
+                    ));
+                }
+                return out;
+            }
+        }
+    }
+
+    /**
+     * Inserta un nuevo familiar en la base de datos.
+     * @param familiar Objeto Familiar con los datos (debe incluir el passwordHashTemporal)
+     */
+    public void insertar(Familiar familiar) throws Exception {
+        // Asume que la tabla tiene 'password_hash' como viste en tu método crearFamiliar
+        String sql = "INSERT INTO familiares (nombre, usuario, email, password_hash) VALUES (?, ?, ?, ?)";
+        
+        try (Connection c = ConexionBD.obtener();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            
+            ps.setString(1, familiar.getNombre());
+            ps.setString(2, familiar.getUsuario());
+            ps.setString(3, familiar.getEmail());
+            // El controlador pone la contraseña (hasheada o no) aquí:
+            ps.setString(4, familiar.getPasswordHashTemporal()); 
+            
+            ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Actualiza los datos básicos (Nombre, Email) de un familiar existente.
+     * NO actualiza ni usuario ni contraseña.
+     * @param familiar Objeto Familiar con el ID y los nuevos datos
+     */
+    public void actualizarBasico(Familiar familiar) throws Exception {
+        String sql = "UPDATE familiares SET nombre = ?, email = ? WHERE id = ?";
+        
+        try (Connection c = ConexionBD.obtener();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            
+            ps.setString(1, familiar.getNombre());
+            ps.setString(2, familiar.getEmail());
+            ps.setInt(3, familiar.getId());
+            
+            ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Elimina un familiar de la base de datos usando su ID.
+     * @param id ID del familiar a eliminar
+     */
+    public void eliminar(Integer id) throws Exception {
+        String sql = "DELETE FROM familiares WHERE id = ?";
+        
+        try (Connection c = ConexionBD.obtener();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            
+            ps.setInt(1, id);
+            ps.executeUpdate();
+            
+            // NOTA: Esto puede fallar si el familiar está asignado a un residente
+            // (error de Foreign Key). Tu controlador lo capturará y mostrará el error,
+            // lo cual es correcto. La alternativa sería borrar asignaciones primero.
         }
     }
 }

@@ -30,9 +30,11 @@ public class PanelAdminControlador {
 
     @FXML
     private void abrirFamiliares() {
-        // Carga un FXML real que YA tienes
-        cargarEnCentro("/fxml/PanelFamiliar.fxml");
+        // Usa el método que ya tienes, que hace todo el trabajo y maneja errores.
+        cargarEnCentro("/fxml/PanelFamiliares.fxml");
     }
+        
+
 
     @FXML
     private void abrirHabitaciones() {
