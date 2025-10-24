@@ -14,7 +14,7 @@ public class PanelAdminControlador {
 
     @FXML
     public void initialize() {
-        // opcional: abrirResidentes();
+        abrirResidentes();
     }
 
     @FXML
@@ -24,13 +24,11 @@ public class PanelAdminControlador {
 
     @FXML
     private void abrirEmpleados() {
-        // Carga un FXML real que YA tienes para verificar que cargarEnCentro funciona
         cargarEnCentro("/fxml/TrabajadoresVista.fxml");
     }
 
     @FXML
     private void abrirFamiliares() {
-        // Usa el método que ya tienes, que hace todo el trabajo y maneja errores.
         cargarEnCentro("/fxml/PanelFamiliares.fxml");
     }
         
@@ -43,23 +41,38 @@ public class PanelAdminControlador {
     }
 
     @FXML
-    private void cerrarSesion() {
-        try {
-            Parent root = FXMLLoader.load(getClass().getResource("/fxml/AccesoVista.fxml"));
-            contenedorCentro.getScene().setRoot(root);
-        } catch (Exception e) {
-            mostrarError("No se pudo cargar /fxml/AccesoVista.fxml", e);
-        }
-    }
+        private void cerrarSesion() {
 
-    /** Carga un FXML dentro del centro y muestra alerta con la CAUSA real si falla. */
+            javafx.scene.control.Alert alerta = new javafx.scene.control.Alert(
+                    javafx.scene.control.Alert.AlertType.CONFIRMATION,
+                    "¿Seguro que quieres cerrar sesión?",
+                    javafx.scene.control.ButtonType.YES,
+                    javafx.scene.control.ButtonType.NO
+            );
+            alerta.setHeaderText("Cerrar sesión");
+            alerta.setTitle("Confirmación");
+
+            var res = alerta.showAndWait();
+            if (res.isEmpty() || res.get() != javafx.scene.control.ButtonType.YES) {
+                return; // el usuario cancela
+            }
+            
+            try {
+                javafx.scene.Parent root = javafx.fxml.FXMLLoader.load(
+                        getClass().getResource("/fxml/AccesoVista.fxml"));
+                contenedorCentro.getScene().setRoot(root);
+            } catch (Exception e) {
+                mostrarError("No se pudo cargar /fxml/AccesoVista.fxml", e);
+            }
+        }
+
+
     private void cargarEnCentro(String rutaFxml) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(rutaFxml));
             Parent vista = loader.load();
             contenedorCentro.getChildren().setAll(vista);
         } catch (Exception e) {
-            // extrae causa encadenada para diagnosticar FXML (línea exacta, método faltante, fx:id, etc.)
             Throwable cause = e;
             StringBuilder sb = new StringBuilder(e.toString());
             while (cause.getCause() != null && cause.getCause() != cause) {
