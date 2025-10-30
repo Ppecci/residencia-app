@@ -80,7 +80,7 @@ public class PanelResidenteActualControlador {
             if (residente == null) { return; }
 
             try {
-                // 1) Traer habitaciones disponibles
+                
                 var disponibles = habitacionDAO.listarDisponibles();
                 if (disponibles.isEmpty()) {
                     // no hay libres
@@ -100,18 +100,16 @@ public class PanelResidenteActualControlador {
         if (elegido.isEmpty()) return; // cancelado
 
         var nueva = elegido.get();
-        // (opcional) pedir notas
+        
         var notasInput = new javafx.scene.control.TextInputDialog("");
         notasInput.setTitle("Cambiar habitación");
         notasInput.setHeaderText("Notas (opcional)");
         notasInput.setContentText("Motivo/observaciones:");
         var notas = notasInput.showAndWait().orElse("");
 
-        // 3) Ejecutar cambio (cierra vigente y crea nueva)
         String hoy = LocalDate.now().toString(); // YYYY-MM-DD
         habitacionDAO.cambiarHabitacion(residente.getId(), nueva.id, hoy, notas);
 
-        // 4) Refrescar vista
         cargarHabitacion();
         cargarHistorico();
 
@@ -148,7 +146,6 @@ private void cargarHistorico() {
     datosHist.clear();
     try {
         var lista = habitacionDAO.listarHistorico(residente.getId());
-        // pintar "—" cuando hasta sea NULL/"" (vigente)
         for (var h : lista) {
             var hasta = (h.hasta == null || h.hasta.isBlank()) ? "—" : h.hasta;
             datosHist.add(new HabitacionDAO.HistHab(h.numero, h.planta, h.desde, hasta, h.notas));
@@ -191,7 +188,6 @@ private void cargarPrescripciones() {
         datosPresc.addAll(lista);
     } catch (Exception e) {
         e.printStackTrace();
-        // opcional: mostrar alerta amigable
     }
     }
     @FXML
@@ -199,7 +195,6 @@ private void cargarPrescripciones() {
     if (residente == null) return;
 
     try {
-        // 1) Medicamentos para el combo
         var meds = medicacionDAO.listarTodas();
         if (meds.isEmpty()) {
             new Alert(Alert.AlertType.INFORMATION,
@@ -207,7 +202,6 @@ private void cargarPrescripciones() {
             return;
         }
 
-        // 2) Diálogo de alta
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Nueva prescripción");
         dialog.setHeaderText("Completa los datos de la nueva prescripción");
@@ -255,7 +249,6 @@ private void cargarPrescripciones() {
         String inicio = (dpInicio.getValue() != null ? dpInicio.getValue().toString() : LocalDate.now().toString());
         String notas  = inNotas.getText();
 
-        // 3) Regla: NO permitir duplicado activo del mismo medicamento
         boolean yaActiva = prescDAO.existeActivaMismoMedicamento(residente.getId(), medSel.id);
         if (yaActiva) {
             new Alert(Alert.AlertType.ERROR,
@@ -264,10 +257,10 @@ private void cargarPrescripciones() {
             return;
         }
 
-        // 4) Insertar
+       
         prescDAO.insertar(residente.getId(), medSel.id, dosis, freq, via, inicio, notas);
 
-        // 5) Refrescar tabla
+     
         cargarPrescripciones();
 
         new Alert(Alert.AlertType.INFORMATION,
@@ -294,7 +287,7 @@ private void finalizarPrescripcion() {
     confirm.setContentText("Medicamento: " + seleccionada.getMedicamento());
     var res = confirm.showAndWait();
 
-    if (res.isEmpty() || res.get() != ButtonType.OK) return; // cancelado
+    if (res.isEmpty() || res.get() != ButtonType.OK) return; 
 
     try {
         String hoy = java.time.LocalDate.now().toString(); // formato YYYY-MM-DD
@@ -320,7 +313,7 @@ private void finalizarPrescripcion() {
         try {
             var opt = dietaDAO.obtenerDietaVigente(residente.getId());
             if (opt.isPresent()) {
-                var d = opt.get(); // DietaDAO.DietaVigente
+                var d = opt.get(); 
                 setDietaLabels(safe(d.nombre), safe(d.desde), safe(d.notas));
             }
         } catch (Exception e) {
@@ -340,7 +333,6 @@ private void finalizarPrescripcion() {
         if (residente == null) return;
 
         try {
-            // 1) Listado de dietas disponibles (catálogo)
             var catalogo = dietaDAO.listarCatalogo();
             if (catalogo.isEmpty()) {
                 new Alert(Alert.AlertType.INFORMATION,
@@ -348,25 +340,24 @@ private void finalizarPrescripcion() {
                 return;
             }
 
-            // 2) Selector
+            
             var dialog = new ChoiceDialog<>(catalogo.get(0), catalogo);
             dialog.setTitle("Cambiar dieta");
             dialog.setHeaderText("Selecciona la nueva dieta");
             dialog.setContentText("Dieta:");
 
             var elegido = dialog.showAndWait();
-            if (elegido.isEmpty()) return; // cancelado
+            if (elegido.isEmpty()) return; 
 
             var nueva = elegido.get();
 
-            // (opcional) pedir notas
+        
             var notasInput = new TextInputDialog("");
             notasInput.setTitle("Cambiar dieta");
             notasInput.setHeaderText("Notas (opcional)");
             notasInput.setContentText("Motivo/observaciones:");
             var notas = notasInput.showAndWait().orElse("");
 
-            // 3) Fecha desde (por defecto hoy)
             var dp = new DatePicker(LocalDate.now());
             var dDialog = new Dialog<ButtonType>();
             dDialog.setTitle("Fecha de inicio de la dieta");
@@ -382,10 +373,10 @@ private void finalizarPrescripcion() {
 
             String desde = (dp.getValue() != null ? dp.getValue().toString() : LocalDate.now().toString());
 
-            // 4) Ejecutar cambio (cierra vigente y abre nueva)
+           
             dietaDAO.cambiarDieta(residente.getId(), nueva.id, desde, notas);
 
-            // 5) Refrescar
+         
             cargarDieta();
             cargarHistoricoDieta();
 
@@ -417,7 +408,7 @@ private void initHistDietaIfNeeded() {
     dietaHistInit = true;
 }
 
-// --- DIETA HIST: carga
+
 private void cargarHistoricoDieta() {
     if (residente == null || tablaHistDieta == null) return;
     initHistDietaIfNeeded();
@@ -425,7 +416,7 @@ private void cargarHistoricoDieta() {
     try {
         var lista = dietaDAO.listarHistorico(residente.getId());
         for (var d : lista) {
-            // pintar "—" cuando hasta sea NULL/"" (vigente)
+            
             var hasta = (d.hasta == null || d.hasta.isBlank()) ? "—" : d.hasta;
             datosHistDieta.add(new DietaDAO.HistDieta(d.nombre, d.desde, hasta, d.notas));
         }
@@ -433,7 +424,6 @@ private void cargarHistoricoDieta() {
         e.printStackTrace();
     }
 }
-// FAMILIA ---
 @FXML private TableView<FamiliarAsignado> tablaFamilia;
 @FXML private TableColumn<FamiliarAsignado, String> colFamNombre, colFamUsuario, colFamParentesco, colFamEmail;
 

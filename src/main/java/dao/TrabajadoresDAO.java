@@ -2,7 +2,7 @@ package dao;
 
 import bd.ConexionBD;
 import modelo.Trabajador;
-import modelo.TrabajadorResumenFila; // <-- NUEVO import
+import modelo.TrabajadorResumenFila; 
 
 import java.sql.*;
 import java.util.*;
@@ -46,7 +46,7 @@ public class TrabajadoresDAO {
         try (Connection c = ConexionBD.obtener(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, t.getNombre());
             ps.setString(2, t.getUsuario());
-            ps.setString(3, t.getPasswordHashTemporal()); // debe venir ya hasheada
+            ps.setString(3, t.getPasswordHashTemporal()); 
             ps.setString(4, t.getEmail());
             ps.setInt(5, Boolean.TRUE.equals(t.getActivo()) ? 1 : 0);
             ps.executeUpdate();
@@ -82,7 +82,6 @@ public class TrabajadoresDAO {
         }
     }
 
-    // --- NUEVO: lista trabajadores activos excepto el dado ---
     public java.util.List<modelo.Trabajador> listarActivosExcepto(int idExcluir) throws Exception {
         String sql = "SELECT id, nombre, usuario, email, activo " +
                      "FROM trabajadores " +
@@ -107,14 +106,10 @@ public class TrabajadoresDAO {
         return out;
     }
 
-    // =========================================================
-    // === NUEVO: método para el Panel Trabajador (listado maestro)
-    // === Devuelve una fila por residente asignado al trabajador,
-    // === con habitación/dieta vigentes, medicación resumida y próxima cita.
-    // =========================================================
+    
     public List<TrabajadorResumenFila> listarAsignados(int trabajadorId, String filtro) throws Exception {
 
-        // WHERE dinámico para el filtro de texto
+        
         StringBuilder where = new StringBuilder();
         List<String> paramsLike = new ArrayList<>();
 

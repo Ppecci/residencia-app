@@ -75,7 +75,6 @@ public class FamiliaresControlador {
         inNombre.setText(seleccionado.getNombre());
         inUsuario.setText(seleccionado.getUsuario());
         inEmail.setText(seleccionado.getEmail());
-        // No permitir cambiar usuario ni contraseña en edición
         inUsuario.setDisable(true);
         if (inPassword != null) { inPassword.clear(); inPassword.setDisable(true); }
     }
@@ -91,7 +90,6 @@ public class FamiliaresControlador {
 
         try {
             if (seleccionado == null || seleccionado.getId() == null) {
-                // Alta: usuario + password obligatorios
                 if (usuario.isBlank() || pass == null || pass.isBlank()) {
                     info("Usuario y contraseña son obligatorios en el alta"); return;
                 }

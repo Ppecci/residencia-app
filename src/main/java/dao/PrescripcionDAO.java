@@ -6,7 +6,6 @@ import java.util.*;
 
 public class PrescripcionDAO {
 
-    /** DTO de lectura para la tabla de prescripciones. */
     public static class PrescView {
         public final int id;
         public final String medicamento;   // nombre
@@ -52,11 +51,7 @@ public class PrescripcionDAO {
         }
     }
 
-    // ========================================================
-    // === CONSULTAS EXISTENTES
-    // ========================================================
-
-    /** Lista prescripciones activas (end_date NULL o vacío) para un residente. */
+   
     public List<PrescView> listarActivas(int residenteId) throws Exception {
         String sql = """
             SELECT p.id,
@@ -97,7 +92,6 @@ public class PrescripcionDAO {
         }
     }
 
-    /** ¿Existe ya una prescripción ACTIVA del mismo medicamento para este residente? */
     public boolean existeActivaMismoMedicamento(int residenteId, int medicacionId) throws Exception {
         String sql = """
             SELECT 1
@@ -116,7 +110,6 @@ public class PrescripcionDAO {
         }
     }
 
-    /** Insertar nueva prescripción (activa: end_date = NULL). Devuelve el id generado. */
     public int insertar(int residenteId, int medicacionId,
                         String dosis, String frecuencia, String via,
                         String startDate, String notas) throws Exception {
@@ -143,7 +136,6 @@ public class PrescripcionDAO {
         }
     }
 
-    /** Finalizar prescripción (establecer end_date). */
     public void finalizar(int prescripcionId, String fechaFin) throws Exception {
         String sql = "UPDATE prescripciones SET end_date = ? WHERE id = ?";
         try (Connection c = ConexionBD.obtener();
@@ -154,11 +146,6 @@ public class PrescripcionDAO {
         }
     }
 
-    // ========================================================
-    // === NUEVAS FUNCIONES PARA EL PANEL TRABAJADOR
-    // ========================================================
-
-    /** Lista prescripciones ya finalizadas (histórico) para un residente. */
     public List<PrescView> listarHistorico(int residenteId) throws Exception {
         String sql = """
             SELECT p.id,
@@ -199,7 +186,6 @@ public class PrescripcionDAO {
         }
     }
 
-    /** Actualiza los campos básicos de una prescripción (solo si está activa). */
     public void actualizar(int id, String dosis, String frecuencia, String via, String notas) throws Exception {
         String sql = "UPDATE prescripciones SET dosis=?, frecuencia=?, via=?, notas=? WHERE id=?";
         try (Connection c = ConexionBD.obtener();

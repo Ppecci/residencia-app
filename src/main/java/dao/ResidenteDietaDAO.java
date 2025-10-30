@@ -23,7 +23,6 @@ public class ResidenteDietaDAO {
         public String getNotas()    { return notas; }
     }
 
-    /** Devuelve la dieta vigente (end_date NULL/''), si existe. */
     public Optional<DietaVigente> obtenerVigente(int residenteId) throws Exception {
         String sql = """
             SELECT rd.dieta_id AS dieta_id,
@@ -54,7 +53,6 @@ public class ResidenteDietaDAO {
         }
     }
 
-    /** Cambia la dieta: cierra la vigente con end_date=startDate y crea una nueva fila. */
     public void cambiarDieta(int residenteId, int nuevaDietaId, String startDate, String notas) throws Exception {
         try (Connection c = ConexionBD.obtener()) {
             c.setAutoCommit(false);

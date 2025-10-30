@@ -11,7 +11,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-import javafx.scene.control.SelectionMode;   // <-- IMPORT NECESARIO
+import javafx.scene.control.SelectionMode;  
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -45,22 +45,19 @@ public class ReasignarAsignacionesControlador {
             new javafx.beans.property.SimpleStringProperty(c.getValue().getInicio()));
         tablaVigentes.setItems(datos);
 
-        // selección múltiple (se hace en código, NO en FXML)
         tablaVigentes.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         dpInicio.setValue(LocalDate.now());
         chkTodos.setOnAction(e -> tablaVigentes.setDisable(chkTodos.isSelected()));
     }
 
-    /** Lo llama el que abre el diálogo (desde el detalle) */
     public void setTrabajador(Trabajador t) throws Exception {
         this.trabajador = t;
         lblTitulo.setText("Reasignar residentes de: " + t.getNombre() + " (" + t.getUsuario() + ")");
         inSustituido.setText(t.getNombre() + " (" + t.getUsuario() + ")");
 
-        // cargar sustitutos activos (excluye al propio t)
+       
         cbSustituto.setItems(FXCollections.observableArrayList(trabDAO.listarActivosExcepto(t.getId())));
-        // cargar vigentes del sustituido
         datos.setAll(asignDAO.listarPorTrabajador(t.getId(), true));
     }
 
@@ -91,7 +88,7 @@ public class ReasignarAsignacionesControlador {
         try (Connection c = ConexionBD.obtener()) {
             c.setAutoCommit(false);
             try {
-                // 1) cerrar asignaciones actuales del sustituido
+                //  cerrar asignaciones actuales del sustituido
                 try (PreparedStatement ps = c.prepareStatement(
                         "UPDATE asignacion_trabajador SET end_date=? WHERE id=?")) {
                     for (AsignacionVista v : seleccionadas) {
@@ -102,7 +99,7 @@ public class ReasignarAsignacionesControlador {
                     ps.executeBatch();
                 }
 
-                // 2) crear nuevas para el sustituto
+                //crear nuevas para el sustituto
                 try (PreparedStatement ps = c.prepareStatement(
                         "INSERT INTO asignacion_trabajador(residente_id, trabajador_id, start_date, end_date, notas) " +
                         "VALUES (?,?,?,?,?)")) {

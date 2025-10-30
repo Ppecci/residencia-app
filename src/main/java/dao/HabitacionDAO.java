@@ -24,7 +24,6 @@ public class HabitacionDAO {
         }
     }
 
-    /** Obtiene la habitación vigente (end_date NULL o vacío) de un residente. */
     public Optional<HabitacionAsignada> obtenerHabitacionVigente(int residenteId) throws Exception {
         String sql = """
                 SELECT h.numero, h.planta, rh.start_date AS desde, rh.notas
@@ -52,23 +51,18 @@ public class HabitacionDAO {
         }
     }
 
-    // ================================
-    // CLASE INTERNA para DIÁLOGOS de disponibles
-    // (NO es la del TableView del CRUD)
-    // ================================
-    public static class Habitacion {        // catálogo de habitaciones (para diálogos)
+    public static class Habitacion {         
         public final int id;
         public final String numero;
         public final String planta;
         public Habitacion(int id, String numero, String planta) {
             this.id = id; this.numero = numero; this.planta = planta;
         }
-        @Override public String toString() { // útil en ChoiceDialog
+        @Override public String toString() { 
             return numero + (planta != null && !planta.isBlank() ? " · " + planta : "");
         }
     }
 
-    /** Lista habitaciones NO ocupadas (sin asignación vigente). */
     public List<Habitacion> listarDisponibles() throws Exception {
         String sql = """
             SELECT h.id, h.numero, h.planta
@@ -89,7 +83,6 @@ public class HabitacionDAO {
         }
     }
 
-    /** Cambia la habitación en una transacción: cierra la vigente (si existe) y abre la nueva. */
     public void cambiarHabitacion(int residenteId, int nuevaHabitacionId, String startDate, String notas) throws Exception {
         try (var c = ConexionBD.obtener()) {
             c.setAutoCommit(false);
@@ -125,9 +118,7 @@ public class HabitacionDAO {
         }
     }
 
-    // ================================
-    // DTO histórico
-    // ================================
+
     public static class HistHab {
         public final String numero, planta, desde, hasta, notas;
         public HistHab(String numero, String planta, String desde, String hasta, String notas) {
@@ -169,7 +160,7 @@ public class HabitacionDAO {
 
 
     public java.util.List<modelo.Habitacion> listarCatalogo(String filtro) throws Exception {
-        // Si usas SQLite: IFNULL; en PostgreSQL usa COALESCE.
+        
         String where = "";
         if (filtro != null && !filtro.isBlank()) {
             where = "WHERE numero LIKE ? OR IFNULL(planta,'') LIKE ?";
@@ -235,7 +226,7 @@ public class HabitacionDAO {
         }
     }
     public java.util.List<HabitacionOcupacionVista> listarOcupacionActual(String filtro, Modo modo) throws Exception {
-    // Construimos WHERE dinámico
+
     StringBuilder sb = new StringBuilder();
     java.util.List<String> params = new java.util.ArrayList<>();
 

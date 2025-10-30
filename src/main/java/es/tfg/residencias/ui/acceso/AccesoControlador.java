@@ -44,14 +44,11 @@ public class AccesoControlador {
                 case "ADMIN" -> Navegacion.cambiar("/fxml/PanelAdmin.fxml");
 
                 case "TRABAJADOR" -> {
-                    // Cargamos manualmente el FXML del panel trabajador
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/PanelTrabajador.fxml"));
                     Parent root = loader.load();
 
-                    // Accedemos al controlador
                     PanelTrabajadorControlador ctrl = loader.getController();
 
-                    // Pasamos el ID del trabajador
                     if (u.getTrabajadorId() != null) {
                         ctrl.setTrabajadorId(u.getTrabajadorId());
 

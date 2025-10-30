@@ -111,7 +111,6 @@ public class FamiliarDAO {
         }
     }
 
-    /** Crea un nuevo familiar */
     public int crearFamiliar(String nombre, String usuario, String passwordHash, String email) throws Exception {
         String sql = "INSERT INTO familiares (nombre, usuario, password_hash, email) VALUES (?,?,?,?)";
         try (Connection c = ConexionBD.obtener();
@@ -128,7 +127,6 @@ public class FamiliarDAO {
         }
     }
 
-    /** Vincula un familiar  a un residente */
     public void insertarAsignacion(int residenteId, int familiarId, String parentesco) throws Exception {
         String sql = "INSERT INTO residente_familiar (residente_id, familiar_id, parentesco) VALUES (?,?,?)";
         try (Connection c = ConexionBD.obtener();
@@ -177,7 +175,6 @@ public class FamiliarDAO {
         }
     }
 
-    /** Elimina la relación residente-familiar */
     public void borrarAsignacion(int idRelacion) throws Exception {
         try (Connection c = ConexionBD.obtener();
              PreparedStatement ps = c.prepareStatement("DELETE FROM residente_familiar WHERE id = ?")) {
@@ -186,9 +183,7 @@ public class FamiliarDAO {
         }
     }
 
-    /* ================== CRUD para panel de administración ================== */
-
-    /** Lista TODOS los familiares para el panel de admin, con filtro por nombre. */
+    
     public List<Familiar> listar(String filtro) throws Exception {
         String sql = "SELECT id, nombre, usuario, email FROM familiares";
         if (filtro != null && !filtro.isBlank()) {
@@ -211,7 +206,6 @@ public class FamiliarDAO {
                         rs.getString("nombre"),
                         rs.getString("usuario"),
                         rs.getString("email")
-                        // Nota: No se carga el hash de la contraseña por seguridad
                     ));
                 }
                 return out;

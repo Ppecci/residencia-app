@@ -1,7 +1,7 @@
 package es.tfg.residencias.ui.admin.habitaciones;
 
 import dao.HabitacionDAO;
-import dao.HabitacionDAO.Modo; // enum del DAO (no static import)
+import dao.HabitacionDAO.Modo; 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -23,7 +23,6 @@ public class HabitacionesControlador {
 
     @FXML
     public void initialize() {
-        // Mapeo columnas -> getters del DTO HabitacionOcupacionVista
         colHabId.setCellValueFactory(      new PropertyValueFactory<>("habId"));
         colNumero.setCellValueFactory(     new PropertyValueFactory<>("numero"));
         colPlanta.setCellValueFactory(     new PropertyValueFactory<>("planta"));
@@ -33,12 +32,10 @@ public class HabitacionesControlador {
 
         tabla.setItems(datos);
 
-        // Combo de modo (Todas / Ocupadas / Libres)
         cbModo.getItems().setAll(Modo.TODAS, Modo.OCUPADAS, Modo.LIBRES);
         cbModo.getSelectionModel().select(Modo.TODAS);
         cbModo.setOnAction(e -> refrescar());
 
-        // Doble clic: si hay residente, aquí podrías navegar a su detalle (opcional)
         tabla.setRowFactory(tv -> {
             TableRow<HabitacionOcupacionVista> row = new TableRow<>();
             row.setOnMouseClicked(ev -> {

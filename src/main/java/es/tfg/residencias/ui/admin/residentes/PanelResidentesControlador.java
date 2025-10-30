@@ -110,20 +110,20 @@ private void verDetalle() {
         }
 
         FXMLLoader loader = new FXMLLoader(url);
-        Parent vistaDetalle = loader.load();  // <-- tipo explícito
+        Parent vistaDetalle = loader.load();  
 
-        // Tipo explícito del controlador, NUNCA como Object
+ 
         PanelResidenteActualControlador ctrl = loader.getController();
         ctrl.setResidente(r);
 
-        // Busca el contenedor central del Panel Admin
+
         StackPane centro = (StackPane) tabla.getScene().lookup("#contenedorCentro");
         if (centro == null) {
             error("No se encontró el contenedor central",
                   "Revisa fx:id=\"contenedorCentro\" en PanelAdmin.fxml");
             return;
         }
-        centro.getChildren().setAll(vistaDetalle); // <-- acepta Parent/Node
+        centro.getChildren().setAll(vistaDetalle);
 
     } catch (Exception e) {
         e.printStackTrace();
