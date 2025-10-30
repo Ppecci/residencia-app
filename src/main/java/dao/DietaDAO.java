@@ -25,7 +25,7 @@ public class DietaDAO {
 
     // --- Dieta
     public static class DietaVigente {
-        public final int idAsignacion; // id fila en residente_dieta (opcional para ti)
+        public final int idAsignacion; 
         public final String nombre;
         public final String desde;     // start_date
         public final String notas;
@@ -38,7 +38,7 @@ public class DietaDAO {
         }
     }
 
-    /** Lista el catálogo */
+  
     public List<Dieta> listarCatalogo() throws Exception {
         String sql = """
             SELECT id, nombre, descripcion
@@ -61,7 +61,7 @@ public class DietaDAO {
         }
     }
 
-    /** Devuelve la dieta */
+   
     public Optional<DietaVigente> obtenerDietaVigente(int residenteId) throws Exception {
         String sql = """
             SELECT rd.id AS id_asign, d.nombre, rd.start_date AS desde, rd.notas
@@ -94,7 +94,7 @@ public class DietaDAO {
         try (Connection c = ConexionBD.obtener()) {
             c.setAutoCommit(false);
             try {
-                // 1) Cierra dieta actual, si hay
+                
                 try (PreparedStatement ps = c.prepareStatement("""
                         UPDATE residente_dieta
                         SET end_date = ?
@@ -105,7 +105,7 @@ public class DietaDAO {
                     ps.executeUpdate();
                 }
 
-                // Abre nueva dieta
+                
                 try (PreparedStatement ps = c.prepareStatement("""
                         INSERT INTO residente_dieta (residente_id, dieta_id, start_date, notas)
                         VALUES (?,?,?,?)
@@ -126,11 +126,11 @@ public class DietaDAO {
             }
         }
     }
-    // --- DTO para el histórico de dietas
+    
 public static class HistDieta {
     public final String nombre;   // nombre de la dieta
     public final String desde;    // start_date
-    public final String hasta;    // end_date (puede ser null)
+    public final String hasta;    // end_date 
     public final String notas;
 
     public HistDieta(String nombre, String desde, String hasta, String notas) {
@@ -143,7 +143,7 @@ public static class HistDieta {
     public String getNotas()  { return notas;  }
 }
 
-/** Histórico completo de dietas del residente (vigentes y finalizadas). */
+/** Histórico completo */
 public java.util.List<HistDieta> listarHistorico(int residenteId) throws Exception {
     String sql = """
         SELECT d.nombre, rd.start_date AS desde, rd.end_date AS hasta, rd.notas

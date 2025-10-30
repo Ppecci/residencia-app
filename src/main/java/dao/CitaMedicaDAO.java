@@ -6,15 +6,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-/** DAO para la tabla citas_medicas (SQLite) */
+
 public class CitaMedicaDAO {
 
-    /** Formato exacto usado en la columna TEXT yyyy-MM-dd HH:mm */
+    
     public static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    // -------- DTO --------
+  
     public static class CitaMedica {
-        public Integer id;                         // <- NO final (se asigna tras insertar)
+        public Integer id;                         // <- se asigna tras insertar
         public final int residenteId;
         public final LocalDateTime fechaHora;
         public final String especialidad;
@@ -34,9 +34,8 @@ public class CitaMedicaDAO {
         }
     }
 
-    // -------- CRUD --------
 
-    /** Lista las citas de un residente ordenadas por fecha */
+
     public List<CitaMedica> listarPorResidente(int residenteId) throws Exception {
         String sql = """
             SELECT id, residente_id, fecha_hora, especialidad, lugar, estado, notas
@@ -66,7 +65,7 @@ public class CitaMedicaDAO {
         }
     }
 
-    /** Inserta una cita y devuelve el id generado */
+    /** Inserta una cita y devuelve el id */
     public int insertar(CitaMedica cta) throws Exception {
         String sql = """
             INSERT INTO citas_medicas (residente_id, fecha_hora, especialidad, lugar, estado, notas)
@@ -89,7 +88,7 @@ public class CitaMedicaDAO {
         }
     }
 
-    /** Actualiza una cita existente */
+    /** Actualiza  */
     public void actualizar(CitaMedica cta) throws Exception {
         String sql = """
             UPDATE citas_medicas
@@ -118,7 +117,7 @@ public class CitaMedicaDAO {
         }
     }
 
-    /** Valores válidos del campo estado (útil para ComboBox) */
+    
     public List<String> estados() {
         return List.of("PROGRAMADA", "REALIZADA", "CANCELADA");
     }

@@ -1,8 +1,8 @@
 package es.tfg.residencias.ui.acceso;
 
 import dao.UsuariosDAO;
-import dao.TrabajadoresDAO; // 🔹 Añadido
-import es.tfg.residencias.ui.trabajador.PanelTrabajadorControlador; // 🔹 Añadido
+import dao.TrabajadoresDAO; 
+import es.tfg.residencias.ui.trabajador.PanelTrabajadorControlador;
 import es.tfg.residencias.ui.util.Navegacion;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -44,24 +44,24 @@ public class AccesoControlador {
                 case "ADMIN" -> Navegacion.cambiar("/fxml/PanelAdmin.fxml");
 
                 case "TRABAJADOR" -> {
-                    // 🔹 Cargamos manualmente el FXML del panel trabajador
+                    // Cargamos manualmente el FXML del panel trabajador
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/PanelTrabajador.fxml"));
                     Parent root = loader.load();
 
-                    // 🔹 Accedemos al controlador
+                    // Accedemos al controlador
                     PanelTrabajadorControlador ctrl = loader.getController();
 
-                    // 🔹 Pasamos el ID del trabajador
+                    // Pasamos el ID del trabajador
                     if (u.getTrabajadorId() != null) {
                         ctrl.setTrabajadorId(u.getTrabajadorId());
 
-                        // (opcional) también pasamos el nombre para el título
+                        // El nombre para el título
                         var daoTrab = new TrabajadoresDAO();
                         String nombre = daoTrab.obtenerNombrePorId(u.getTrabajadorId()).orElse("Desconocido");
                         ctrl.setNombreTrabajador(nombre);
                     }
 
-                    // 🔹 Mostramos la escena
+                    // Mostramos
                     Scene scene = accederBoton.getScene();
                     scene.setRoot(root);
                 }

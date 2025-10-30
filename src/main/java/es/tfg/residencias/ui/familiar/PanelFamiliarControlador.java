@@ -2,7 +2,8 @@ package es.tfg.residencias.ui.familiar;
 
 import dao.FamiliarDAO;
 import modelo.FilaResumenFamiliar;
-
+import modelo.Usuario;
+import sesion.Sesion;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.collections.FXCollections;
@@ -110,10 +111,6 @@ public class PanelFamiliarControlador {
         }
     }
 
-    // ----------------------
-    // Métodos auxiliares
-    // ----------------------
-
     private void cargarTabla(String filtro) {
         try {
             List<FilaResumenFamiliar> lista = (filtro == null)
@@ -152,13 +149,17 @@ public class PanelFamiliarControlador {
     // Simulación de sesión
     // (Sustituye por tu clase real de sesión/login)
     // ----------------------
-    private int obtenerFamiliarIdDesdeSesion() {
-        // TODO: Sustituir por: Sesion.getUsuarioActual().getFamiliarId()
-        return 1; // valor de ejemplo
+   private int obtenerFamiliarIdDesdeSesion() {
+    Usuario usuario = Sesion.getUsuario();
+    if (usuario != null && usuario.getFamiliarId() != 0) {
+        return usuario.getFamiliarId();
+    } else {
+        throw new IllegalStateException("No hay usuario familiar activo en la sesión");
     }
+}
 
-    private String obtenerNombreFamiliarDesdeSesion() {
-        // TODO: Sustituir por: Sesion.getUsuarioActual().getNombre()
-        return "Familiar (demo)";
-    }
+private String obtenerNombreFamiliarDesdeSesion() {
+    Usuario usuario = Sesion.getUsuario();
+    return (usuario != null) ? usuario.getUsername() : "Familiar desconocido";
+}
 }

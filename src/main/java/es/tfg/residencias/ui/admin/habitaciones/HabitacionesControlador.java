@@ -44,9 +44,7 @@ public class HabitacionesControlador {
             row.setOnMouseClicked(ev -> {
                 if (ev.getClickCount() == 2 && !row.isEmpty()) {
                     HabitacionOcupacionVista item = row.getItem();
-                    if (item.getResidenteId() != null) {
-                        // TODO: por si queremos implementar navegar al panel de Residentes con item.getResidenteId()
-                    }
+                    if (item.getResidenteId() != null) {                    }
                 }
             });
             return row;

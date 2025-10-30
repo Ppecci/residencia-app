@@ -4,25 +4,16 @@ import bd.ConexionBD;
 import java.sql.*;
 import java.util.*;
 
-import modelo.Familiar;                // tu modelo para el panel de administración
-import modelo.FilaResumenFamiliar;   // DTO de la tabla del Panel Familiar (read-only)
+import modelo.Familiar;                // modelo para el panel de administración
+import modelo.FilaResumenFamiliar;   // DTO de la tabla del Panel Familiar
 
-/**
- * DAO de familiares:
- * - Gestión de relaciones residente-familiar (administración)
- * - CRUD de familiares (administración)
- * - Resumen para Panel Familiar (solo lectura)
- */
+
 public class FamiliarDAO {
 
-    /* ==================================================================
-     * ====================  SECCIÓN: ADMINISTRACIÓN  ====================
-     * ================================================================== */
-
-    /** Vista para la tabla: familiar asignado a un residente */
+    
     public static class FamiliarAsignado {
-        public final int idRelacion;   // id en residente_familiar
-        public final int idFamiliar;   // id en familiares
+        public final int idRelacion;   
+        public final int idFamiliar;   
         public final String nombre;
         public final String usuario;
         public final String email;
@@ -38,7 +29,7 @@ public class FamiliarDAO {
             this.parentesco = parentesco;
         }
 
-        // getters para TableView
+        // getters
         public int getIdRelacion() { return idRelacion; }
         public int getIdFamiliar() { return idFamiliar; }
         public String getNombre()   { return nombre;    }
@@ -47,7 +38,7 @@ public class FamiliarDAO {
         public String getParentesco(){ return parentesco; }
     }
 
-    /** Familiares existentes (para combos) */
+    
     public static class ComboFamiliar {
         public final int id;
         public final String nombre;
@@ -63,7 +54,7 @@ public class FamiliarDAO {
         }
     }
 
-    /** Lista SOLO de los familiares asignados a un residente */
+   
     public List<FamiliarAsignado> listarAsignados(int residenteId) throws Exception {
         String sql = """
             SELECT rf.id AS id_rel, f.id AS id_fam, f.nombre, f.usuario, f.email, rf.parentesco
@@ -92,7 +83,6 @@ public class FamiliarDAO {
         }
     }
 
-    /** Lista familiares NO asignados aún a un residente (para combos) */
     public List<ComboFamiliar> listarNoAsignados(int residenteId) throws Exception {
         String sql = """
             SELECT f.id, f.nombre, f.usuario, f.email
@@ -138,7 +128,7 @@ public class FamiliarDAO {
         }
     }
 
-    /** Vincula un familiar existente a un residente */
+    /** Vincula un familiar  a un residente */
     public void insertarAsignacion(int residenteId, int familiarId, String parentesco) throws Exception {
         String sql = "INSERT INTO residente_familiar (residente_id, familiar_id, parentesco) VALUES (?,?,?)";
         try (Connection c = ConexionBD.obtener();
@@ -150,7 +140,6 @@ public class FamiliarDAO {
         }
     }
 
-    /** Actualiza datos del familiar + la relación (parentesco) en una transacción */
     public void actualizarAsignado(int idRelacion, int idFamiliar,
                                    String nombre, String usuario, String email, String parentesco) throws Exception {
         try (Connection c = ConexionBD.obtener()) {
@@ -230,7 +219,6 @@ public class FamiliarDAO {
         }
     }
 
-    /** Inserta un nuevo familiar en la base de datos (panel admin). */
     public void insertar(Familiar familiar) throws Exception {
         String sql = "INSERT INTO familiares (nombre, usuario, email, password_hash) VALUES (?, ?, ?, ?)";
         try (Connection c = ConexionBD.obtener();
@@ -243,7 +231,6 @@ public class FamiliarDAO {
         }
     }
 
-    /** Actualiza datos básicos (nombre, email) de un familiar existente. */
     public void actualizarBasico(Familiar familiar) throws Exception {
         String sql = "UPDATE familiares SET nombre = ?, email = ? WHERE id = ?";
         try (Connection c = ConexionBD.obtener();
@@ -255,7 +242,6 @@ public class FamiliarDAO {
         }
     }
 
-    /** Elimina un familiar por ID (puede fallar por FK si está asignado). */
     public void eliminar(Integer id) throws Exception {
         String sql = "DELETE FROM familiares WHERE id = ?";
         try (Connection c = ConexionBD.obtener();
@@ -265,13 +251,7 @@ public class FamiliarDAO {
         }
     }
 
-    /* ==================================================================
-     * ===============  SECCIÓN: PANEL FAMILIAR (READ-ONLY)  =============
-     * ================================================================== */
-
-    // ----------------------------
-    // SELECT base (resumen panel familiar)
-    // ----------------------------
+    
     private static final String SELECT_PANEL_FAMILIAR_BASE = """
         WITH res_vinc AS (
             SELECT r.id AS residente_id, r.nombre, r.apellidos
@@ -360,9 +340,7 @@ public class FamiliarDAO {
         ORDER BY rv.apellidos, rv.nombre
         """;
 
-    // -----------------------------------------------------------
-    // SELECT con filtro de búsqueda (nombre, apellidos, nº hab.)
-    // -----------------------------------------------------------
+   
     private static final String SELECT_PANEL_FAMILIAR_BUSCAR = """
         WITH res_vinc AS (
             SELECT r.id AS residente_id, r.nombre, r.apellidos
@@ -459,7 +437,7 @@ public class FamiliarDAO {
         ORDER BY rv.apellidos, rv.nombre
         """;
 
-    /** Panel Familiar: resumen completo */
+    
     public List<FilaResumenFamiliar> obtenerResumenPanel(int familiarId) {
         try (Connection c = ConexionBD.obtener();
              PreparedStatement ps = c.prepareStatement(SELECT_PANEL_FAMILIAR_BASE)) {
@@ -469,12 +447,11 @@ public class FamiliarDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 return mapearResumenPanel(rs);
             }
-        }  catch (Exception e) {  // <-- antes ponía SQLException
+        }  catch (Exception e) {  
         throw new RuntimeException("Error obteniendo resumen del panel familiar", e);
     }
     }
 
-    /** Panel Familiar: búsqueda por nombre/apellidos/nº habitación (solo residentes del familiar) */
     public List<FilaResumenFamiliar> buscarEnPanel(int familiarId, String texto) {
         if (texto == null) texto = "";
         try (Connection c = ConexionBD.obtener();
@@ -488,12 +465,12 @@ public class FamiliarDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 return mapearResumenPanel(rs);
             }
-        } catch (Exception e) {  // <-- antes ponía SQLException
+        } catch (Exception e) {  
         throw new RuntimeException("Error buscando en el panel familiar", e);
     }
     }
 
-    // ------- Mapeadores para el Panel Familiar -------
+
     private List<FilaResumenFamiliar> mapearResumenPanel(ResultSet rs) throws SQLException {
         List<FilaResumenFamiliar> out = new ArrayList<>();
         while (rs.next()) {

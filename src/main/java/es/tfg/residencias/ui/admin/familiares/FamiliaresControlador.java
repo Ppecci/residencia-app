@@ -1,7 +1,6 @@
 package es.tfg.residencias.ui.admin.familiares;
 
-import dao.FamiliarDAO; // <- USA TU DAO (si se llama FamilIARESDAO, cambia este import)
-// import dao.FamiliaresDAO;
+import dao.FamiliarDAO; 
 
 import javafx.collections.*;
 import javafx.fxml.FXML;
@@ -22,9 +21,8 @@ public class FamiliaresControlador {
     @FXML private TextField inNombre, inUsuario, inEmail;
     @FXML private PasswordField inPassword;
 
-    // Instancia de tu DAO
+   
     private final FamiliarDAO dao = new FamiliarDAO();
-    // private final FamiliaresDAO dao = new FamiliaresDAO(); // <- si tu clase se llama así
 
     private final ObservableList<Familiar> datos = FXCollections.observableArrayList();
     private Familiar seleccionado;
@@ -98,14 +96,12 @@ public class FamiliaresControlador {
                     info("Usuario y contraseña son obligatorios en el alta"); return;
                 }
                 Familiar f = new Familiar(null, nombre, usuario, email);
-                // TODO: hashear 'pass' antes si aún no lo haces:
                 f.setPasswordHashTemporal(pass);
                 dao.insertar(f);
             } else {
-                // Edición: NO tocar usuario ni password
                 seleccionado.setNombre(nombre);
                 seleccionado.setEmail(email);
-                dao.actualizarBasico(seleccionado); // si tu DAO se llama distinto, usa el update que tengas
+                dao.actualizarBasico(seleccionado);
             }
             nuevo(); refrescar();
         } catch (Exception e) {

@@ -4,7 +4,7 @@ import javafx.beans.property.*;
 
 public class FilaResumenFamiliar {
 
-    // Campos (solo lectura en la UI)
+    
     private final IntegerProperty idResidente = new SimpleIntegerProperty();
     private final StringProperty  nombre       = new SimpleStringProperty();
     private final StringProperty  apellidos    = new SimpleStringProperty();
@@ -20,7 +20,7 @@ public class FilaResumenFamiliar {
             int idResidente,
             String nombre,
             String apellidos,
-            Integer idHabitacion,   // puede venir null de la BD si no hay habitación vigente
+            Integer idHabitacion,   
             String numero,
             String planta,
             String medicacionResumen,
@@ -42,7 +42,7 @@ public class FilaResumenFamiliar {
 
     private static String nullToEmpty(String s) { return s == null ? "" : s; }
 
-    // Getters “JavaFX-friendly” (para TableView)
+    // Getters
     public IntegerProperty idResidenteProperty() { return idResidente; }
     public StringProperty  nombreProperty() { return nombre; }
     public StringProperty  apellidosProperty() { return apellidos; }
@@ -54,7 +54,7 @@ public class FilaResumenFamiliar {
     public StringProperty  dietaNotasProperty() { return dietaNotas; }
     public StringProperty  proximaCitaProperty() { return proximaCita; }
 
-    // Getters simples (por comodidad en lógica)
+    // Getters
     public Integer getIdResidente() { return idResidente.get(); }
     public String  getNombre() { return nombre.get(); }
     public String  getApellidos() { return apellidos.get(); }
@@ -66,5 +66,4 @@ public class FilaResumenFamiliar {
     public String  getDietaNotas() { return dietaNotas.get(); }
     public String  getProximaCita() { return proximaCita.get(); }
 
-    // Sin setters para reforzar “solo lectura” en UI.
 }
