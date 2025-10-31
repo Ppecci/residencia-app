@@ -21,10 +21,8 @@ public class DialogoDietaControlador {
 
     @FXML
     public void initialize() {
-        // nada especial aquí
     }
 
-    /** Llamar al abrir el diálogo. */
     public void setResidente(int residenteId, String nombreCompleto, Integer dietaActualId, String dietaNotasActuales) {
         this.residenteId = residenteId;
 
@@ -33,10 +31,8 @@ public class DialogoDietaControlador {
         inDesde.setText(LocalDate.now().toString());
 
         try {
-            // Catálogo para el combo (usa tu listarCatalogo)
             cbDieta.getItems().setAll(dietaDAO.listarCatalogo());
 
-            // Dieta vigente desde BD (más fiable que la tabla)
             var vigenteOpt = dietaDAO.obtenerDietaVigente(residenteId);
             if (vigenteOpt.isPresent()) {
                 var v = vigenteOpt.get();
@@ -44,13 +40,9 @@ public class DialogoDietaControlador {
                 lblVigenteDesde.setText(v.desde != null ? v.desde : "-");
                 lblVigenteNotas.setText(v.notas != null ? v.notas : "-");
 
-                // Preselecciona en el combo si existe en catálogo
                 cbDieta.getItems().stream()
-                        .filter(d -> d.id == v.idAsignacion /* ojo: idAsignacion es de residente_dieta, NO de dietas */)
-                        .findAny(); // no seleccionar por esto; ver nota abajo
-                // Nota: tu DietaVigente guarda idAsignacion (residente_dieta), no dieta_id.
-                // Por eso NO podemos preseleccionar por id aquí. Mostramos la vigente en labels,
-                // y el usuario elige la nueva en el combo.
+                        .filter(d -> d.id == v.idAsignacion )
+                        .findAny(); 
             } else {
                 lblVigenteNombre.setText("(sin dieta vigente)");
                 lblVigenteDesde.setText("-");
@@ -89,11 +81,16 @@ public class DialogoDietaControlador {
 
     private void info(String msg) {
         Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
-        a.setHeaderText(null); a.showAndWait();
+        a.setHeaderText(null);
+        a.getDialogPane().getStylesheets().add(es.tfg.residencias.ui.util.Navegacion.appCss());  // ✅ estilo verde
+        a.showAndWait();
     }
 
     private void error(String titulo, String detalle) {
         Alert a = new Alert(Alert.AlertType.ERROR, detalle, ButtonType.OK);
-        a.setHeaderText(titulo); a.showAndWait();
+        
+        a.setHeaderText(titulo); 
+        a.getDialogPane().getStylesheets().add(es.tfg.residencias.ui.util.Navegacion.appCss());
+        a.showAndWait();
     }
 }

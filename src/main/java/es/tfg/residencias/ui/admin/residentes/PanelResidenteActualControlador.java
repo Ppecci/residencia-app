@@ -13,6 +13,7 @@ import java.time.LocalDate;
 
 import dao.HabitacionDAO;
 import dao.PrescripcionDAO;
+import es.tfg.residencias.ui.util.Navegacion;
 import dao.MedicacionDAO;
 import dao.MedicacionDAO.Medicacion;
 import dao.DietaDAO;
@@ -76,35 +77,43 @@ public class PanelResidenteActualControlador {
 
 
     @FXML
-        private void cambiarHabitacion() {
-            if (residente == null) { return; }
+private void cambiarHabitacion() {
+    if (residente == null) { return; }
 
-            try {
-                
-                var disponibles = habitacionDAO.listarDisponibles();
-                if (disponibles.isEmpty()) {
-                    // no hay libres
-                    if (lblHabNumero != null) lblHabNumero.setText("—");
-                    new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION,
-                        "No hay habitaciones disponibles ahora mismo.").showAndWait();
-                    return;
-                }
+    try {
+        var disponibles = habitacionDAO.listarDisponibles();
+        if (disponibles.isEmpty()) {
+            // No hay libres
+            if (lblHabNumero != null) lblHabNumero.setText("—");
 
-        // 2) Mostrar selector
+            var alertaNoLibres = new javafx.scene.control.Alert(
+                    javafx.scene.control.Alert.AlertType.INFORMATION,
+                    "No hay habitaciones disponibles ahora mismo."
+            );
+            Navegacion.aplicarCss(alertaNoLibres);
+            alertaNoLibres.showAndWait();
+            return;
+        }
+
         var dialog = new ChoiceDialog<>(disponibles.get(0), disponibles);
         dialog.setTitle("Cambiar habitación");
         dialog.setHeaderText("Selecciona la nueva habitación");
         dialog.setContentText("Habitación:");
 
+        Navegacion.aplicarCss(dialog);
+
         var elegido = dialog.showAndWait();
         if (elegido.isEmpty()) return; // cancelado
 
         var nueva = elegido.get();
-        
+
         var notasInput = new javafx.scene.control.TextInputDialog("");
         notasInput.setTitle("Cambiar habitación");
         notasInput.setHeaderText("Notas (opcional)");
         notasInput.setContentText("Motivo/observaciones:");
+
+        Navegacion.aplicarCss(notasInput);
+
         var notas = notasInput.showAndWait().orElse("");
 
         String hoy = LocalDate.now().toString(); // YYYY-MM-DD
@@ -113,16 +122,26 @@ public class PanelResidenteActualControlador {
         cargarHabitacion();
         cargarHistorico();
 
-        new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION,
-            "Habitación cambiada a " + nueva.numero + ".").showAndWait();
+       
+        var alertaOk = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.INFORMATION,
+                "Habitación cambiada a " + nueva.numero + "."
+        );
+        Navegacion.aplicarCss(alertaOk);
+        alertaOk.showAndWait();
 
     } catch (Exception e) {
         e.printStackTrace();
-        new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR,
-            "No se pudo cambiar la habitación:\n" + e.getMessage()).showAndWait();
+
+       
+        var alertaError = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.ERROR,
+                "No se pudo cambiar la habitación:\n" + e.getMessage()
+        );
+        Navegacion.aplicarCss(alertaError);
+        alertaError.showAndWait();
     }
 }
-
 
 @FXML private TableView<HabitacionDAO.HistHab> tablaHistHab;
 @FXML private TableColumn<HabitacionDAO.HistHab, String> colHistNumero, colHistPlanta, colHistDesde, colHistHasta, colHistNotas;
@@ -190,15 +209,18 @@ private void cargarPrescripciones() {
         e.printStackTrace();
     }
     }
-    @FXML
-    private void anadirPrescripcion() {
+
+            @FXML
+private void anadirPrescripcion() {
     if (residente == null) return;
 
     try {
         var meds = medicacionDAO.listarTodas();
         if (meds.isEmpty()) {
-            new Alert(Alert.AlertType.INFORMATION,
-                "No hay medicamentos en el catálogo. Crea alguno en 'medicaciones'.").showAndWait();
+            Alert a = new Alert(Alert.AlertType.INFORMATION,
+                    "No hay medicamentos en el catálogo. Crea alguno en 'medicaciones'.");
+            Navegacion.aplicarCss(a); 
+            a.showAndWait();
             return;
         }
 
@@ -229,12 +251,15 @@ private void cargarPrescripciones() {
         gp.addRow(5, new Label("Notas:"), inNotas);
         dialog.getDialogPane().setContent(gp);
 
-        // Validación básica
+        Navegacion.aplicarCss(dialog);
+
         var btnOk = dialog.getDialogPane().lookupButton(guardarBtn);
         btnOk.addEventFilter(javafx.event.ActionEvent.ACTION, ev -> {
             if (cbMed.getValue() == null || inDosis.getText().isBlank() || inFreq.getText().isBlank()) {
-                new Alert(Alert.AlertType.WARNING,
-                    "Medicamento, dosis y frecuencia son obligatorios.").showAndWait();
+                Alert w = new Alert(Alert.AlertType.WARNING,
+                        "Medicamento, dosis y frecuencia son obligatorios.");
+                Navegacion.aplicarCss(w); // ✅
+                w.showAndWait();
                 ev.consume();
             }
         });
@@ -251,52 +276,70 @@ private void cargarPrescripciones() {
 
         boolean yaActiva = prescDAO.existeActivaMismoMedicamento(residente.getId(), medSel.id);
         if (yaActiva) {
-            new Alert(Alert.AlertType.ERROR,
-                "Ya existe una prescripción ACTIVA para \"" + medSel.nombre + "\".\n" +
-                "No se puede duplicar la misma medicación activa.").showAndWait();
+            Alert errDup = new Alert(Alert.AlertType.ERROR,
+                    "Ya existe una prescripción ACTIVA para \"" + medSel.nombre + "\".\n" +
+                    "No se puede duplicar la misma medicación activa.");
+            Navegacion.aplicarCss(errDup); // ✅
+            errDup.showAndWait();
             return;
         }
 
-       
         prescDAO.insertar(residente.getId(), medSel.id, dosis, freq, via, inicio, notas);
 
-     
         cargarPrescripciones();
 
-        new Alert(Alert.AlertType.INFORMATION,
-            "Prescripción añadida correctamente.").showAndWait();
+        Alert ok = new Alert(Alert.AlertType.INFORMATION,
+                "Prescripción añadida correctamente.");
+        Navegacion.aplicarCss(ok); // ✅
+        ok.showAndWait();
+
     } catch (Exception e) {
-        e.printStackTrace();    
-        new Alert(Alert.AlertType.ERROR,
-            "Error al añadir prescripción:\n" + e.getMessage()).showAndWait();
-        }
+        e.printStackTrace();
+        Alert err = new Alert(Alert.AlertType.ERROR,
+                "Error al añadir prescripción:\n" + e.getMessage());
+        Navegacion.aplicarCss(err); // ✅
+        err.showAndWait();
+    }
 }
-@FXML
+
+    @FXML
 private void finalizarPrescripcion() {
     if (tablaPresc == null || tablaPresc.getSelectionModel().getSelectedItem() == null) {
-        new Alert(Alert.AlertType.INFORMATION, "Selecciona una prescripción activa primero.").showAndWait();
+        Alert info = new Alert(Alert.AlertType.INFORMATION,
+                "Selecciona una prescripción activa primero.");
+        Navegacion.aplicarCss(info);
+        info.showAndWait();
         return;
     }
 
     var seleccionada = tablaPresc.getSelectionModel().getSelectedItem();
 
-    // Confirmación antes de cerrar
     Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
     confirm.setTitle("Finalizar prescripción");
     confirm.setHeaderText("¿Finalizar la medicación seleccionada?");
     confirm.setContentText("Medicamento: " + seleccionada.getMedicamento());
-    var res = confirm.showAndWait();
 
-    if (res.isEmpty() || res.get() != ButtonType.OK) return; 
+    Navegacion.aplicarCss(confirm);
+
+    var res = confirm.showAndWait();
+    if (res.isEmpty() || res.get() != ButtonType.OK) return;
 
     try {
         String hoy = java.time.LocalDate.now().toString(); // formato YYYY-MM-DD
         prescDAO.finalizar(seleccionada.getId(), hoy);
         cargarPrescripciones();
-        new Alert(Alert.AlertType.INFORMATION, "Prescripción finalizada correctamente.").showAndWait();
+
+        Alert ok = new Alert(Alert.AlertType.INFORMATION,
+                "Prescripción finalizada correctamente.");
+        Navegacion.aplicarCss(ok); 
+        ok.showAndWait();
+
     } catch (Exception e) {
         e.printStackTrace();
-        new Alert(Alert.AlertType.ERROR, "Error al finalizar prescripción:\n" + e.getMessage()).showAndWait();
+        Alert err = new Alert(Alert.AlertType.ERROR,
+                "Error al finalizar prescripción:\n" + e.getMessage());
+        Navegacion.aplicarCss(err); 
+        err.showAndWait();
     }
 }
 // DIETA ---
@@ -329,66 +372,79 @@ private void finalizarPrescripcion() {
     }
 
     @FXML
-    private void cambiarDieta() {
-        if (residente == null) return;
+private void cambiarDieta() {
+    if (residente == null) return;
 
-        try {
-            var catalogo = dietaDAO.listarCatalogo();
-            if (catalogo.isEmpty()) {
-                new Alert(Alert.AlertType.INFORMATION,
-                    "No hay dietas en el catálogo. Crea alguna en 'Dietas'.").showAndWait();
-                return;
-            }
-
-            
-            var dialog = new ChoiceDialog<>(catalogo.get(0), catalogo);
-            dialog.setTitle("Cambiar dieta");
-            dialog.setHeaderText("Selecciona la nueva dieta");
-            dialog.setContentText("Dieta:");
-
-            var elegido = dialog.showAndWait();
-            if (elegido.isEmpty()) return; 
-
-            var nueva = elegido.get();
-
-        
-            var notasInput = new TextInputDialog("");
-            notasInput.setTitle("Cambiar dieta");
-            notasInput.setHeaderText("Notas (opcional)");
-            notasInput.setContentText("Motivo/observaciones:");
-            var notas = notasInput.showAndWait().orElse("");
-
-            var dp = new DatePicker(LocalDate.now());
-            var dDialog = new Dialog<ButtonType>();
-            dDialog.setTitle("Fecha de inicio de la dieta");
-            dDialog.setHeaderText("Selecciona la fecha desde la que aplica la dieta");
-            var ok = new ButtonType("Aceptar", ButtonBar.ButtonData.OK_DONE);
-            dDialog.getDialogPane().getButtonTypes().addAll(ok, ButtonType.CANCEL);
-            var gp = new GridPane();
-            gp.setHgap(10); gp.setVgap(10); gp.setPadding(new Insets(10));
-            gp.addRow(0, new Label("Desde:"), dp);
-            dDialog.getDialogPane().setContent(gp);
-            var fechaRes = dDialog.showAndWait();
-            if (fechaRes.isEmpty() || fechaRes.get() != ok) return;
-
-            String desde = (dp.getValue() != null ? dp.getValue().toString() : LocalDate.now().toString());
-
-           
-            dietaDAO.cambiarDieta(residente.getId(), nueva.id, desde, notas);
-
-         
-            cargarDieta();
-            cargarHistoricoDieta();
-
-            new Alert(Alert.AlertType.INFORMATION,
-                "Dieta cambiada a \"" + nueva.nombre + "\".").showAndWait();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR,
-                "No se pudo cambiar la dieta:\n" + e.getMessage()).showAndWait();
+    try {
+        var catalogo = dietaDAO.listarCatalogo();
+        if (catalogo.isEmpty()) {
+            Alert a = new Alert(Alert.AlertType.INFORMATION,
+                    "No hay dietas en el catálogo. Crea alguna en 'Dietas'.");
+            Navegacion.aplicarCss(a); 
+            a.showAndWait();
+            return;
         }
+
+        // --- Seleccionar dieta ---
+        var dialog = new ChoiceDialog<>(catalogo.get(0), catalogo);
+        dialog.setTitle("Cambiar dieta");
+        dialog.setHeaderText("Selecciona la nueva dieta");
+        dialog.setContentText("Dieta:");
+
+        Navegacion.aplicarCss(dialog); 
+        var elegido = dialog.showAndWait();
+        if (elegido.isEmpty()) return;
+
+        var nueva = elegido.get();
+
+     
+        var notasInput = new TextInputDialog("");
+        notasInput.setTitle("Cambiar dieta");
+        notasInput.setHeaderText("Notas (opcional)");
+        notasInput.setContentText("Motivo/observaciones:");
+
+        Navegacion.aplicarCss(notasInput); 
+        var notas = notasInput.showAndWait().orElse("");
+
+       
+        var dp = new DatePicker(LocalDate.now());
+        var dDialog = new Dialog<ButtonType>();
+        dDialog.setTitle("Fecha de inicio de la dieta");
+        dDialog.setHeaderText("Selecciona la fecha desde la que aplica la dieta");
+        var ok = new ButtonType("Aceptar", ButtonBar.ButtonData.OK_DONE);
+        dDialog.getDialogPane().getButtonTypes().addAll(ok, ButtonType.CANCEL);
+
+        var gp = new GridPane();
+        gp.setHgap(10); gp.setVgap(10); gp.setPadding(new Insets(10));
+        gp.addRow(0, new Label("Desde:"), dp);
+        dDialog.getDialogPane().setContent(gp);
+
+        Navegacion.aplicarCss(dDialog); 
+        var fechaRes = dDialog.showAndWait();
+        if (fechaRes.isEmpty() || fechaRes.get() != ok) return;
+
+        String desde = (dp.getValue() != null ? dp.getValue().toString() : LocalDate.now().toString());
+
+        // --- Guardar ---
+        dietaDAO.cambiarDieta(residente.getId(), nueva.id, desde, notas);
+
+        cargarDieta();
+        cargarHistoricoDieta();
+
+        Alert okAlert = new Alert(Alert.AlertType.INFORMATION,
+                "Dieta cambiada a \"" + nueva.nombre + "\".");
+        Navegacion.aplicarCss(okAlert); 
+        okAlert.showAndWait();
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        Alert err = new Alert(Alert.AlertType.ERROR,
+                "No se pudo cambiar la dieta:\n" + e.getMessage());
+        Navegacion.aplicarCss(err); 
+        err.showAndWait();
     }
+}
+
     // --- DIETA HIST: UI
 @FXML private TableView<DietaDAO.HistDieta> tablaHistDieta;
 @FXML private TableColumn<DietaDAO.HistDieta, String> colDHNombre, colDHDesde, colDHHasta, colDHNotas;
@@ -464,6 +520,7 @@ private void anadirFamiliar() {
     tipo.setTitle("Añadir familiar");
     tipo.setHeaderText("Elige cómo quieres añadir");
     tipo.setContentText("Acción:");
+    Navegacion.aplicarCss(tipo);
     var tipoRes = tipo.showAndWait();
     if (tipoRes.isEmpty()) return;
 
@@ -486,6 +543,8 @@ private void vincularExistente() {
         choice.setTitle("Vincular familiar existente");
         choice.setHeaderText("Selecciona el familiar");
         choice.setContentText("Familiar:");
+        Navegacion.aplicarCss(choice);
+
         var elegido = choice.showAndWait();
         if (elegido.isEmpty()) return;
 
@@ -511,6 +570,7 @@ private void crearNuevoYVincular() {
         dlg.setHeaderText("Introduce los datos del nuevo familiar");
         ButtonType guardar = new ButtonType("Crear y vincular", ButtonBar.ButtonData.OK_DONE);
         dlg.getDialogPane().getButtonTypes().addAll(guardar, ButtonType.CANCEL);
+        dlg.getDialogPane().getStylesheets().add(Navegacion.appCss());
 
         TextField inNombre = new TextField();
         TextField inUsuario = new TextField();
@@ -567,6 +627,7 @@ private void editarFamiliar() {
         dlg.setHeaderText("Modifica los datos del familiar y el parentesco");
         ButtonType guardar = new ButtonType("Guardar", ButtonBar.ButtonData.OK_DONE);
         dlg.getDialogPane().getButtonTypes().addAll(guardar, ButtonType.CANCEL);
+        dlg.getDialogPane().getStylesheets().add(Navegacion.appCss());
 
         TextField inNombre = new TextField(sel.getNombre());
         TextField inUsuario = new TextField(sel.getUsuario());
@@ -611,7 +672,9 @@ private void editarFamiliar() {
 @FXML
 private void borrarFamiliar() {
     if (tablaFamilia == null || tablaFamilia.getSelectionModel().getSelectedItem() == null) {
-        new Alert(Alert.AlertType.INFORMATION, "Selecciona un familiar primero.").showAndWait();
+        Alert alerta = new Alert(Alert.AlertType.INFORMATION, "Selecciona un familiar primero.");
+        alerta.getDialogPane().getStylesheets().add(Navegacion.appCss());  // ✅ Aplica tu app.css
+        alerta.showAndWait();
         return;
     }
     var sel = tablaFamilia.getSelectionModel().getSelectedItem();
@@ -620,6 +683,7 @@ private void borrarFamiliar() {
     confirm.setTitle("Eliminar asignación");
     confirm.setHeaderText("¿Quitar este familiar del residente?");
     confirm.setContentText(sel.getNombre() + " (" + sel.getParentesco() + ")");
+    confirm.getDialogPane().getStylesheets().add(Navegacion.appCss());
     var r = confirm.showAndWait();
     if (r.isEmpty() || r.get() != ButtonType.OK) return;
 

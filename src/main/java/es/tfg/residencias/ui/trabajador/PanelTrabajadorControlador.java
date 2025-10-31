@@ -1,6 +1,7 @@
 package es.tfg.residencias.ui.trabajador;
 
 import dao.TrabajadoresDAO;
+import es.tfg.residencias.ui.util.Navegacion;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -113,65 +114,75 @@ public class PanelTrabajadorControlador {
         }
     }
 
+   @FXML
+private void editarPrescripciones() {
+    var fila = tabla.getSelectionModel().getSelectedItem();
+    if (fila == null) { info("Selecciona un residente."); return; }
+
+    try {
+        javafx.fxml.FXMLLoader loader =
+                new javafx.fxml.FXMLLoader(getClass().getResource("/fxml/DialogoPrescripciones.fxml"));
+
+        javafx.scene.Parent root = loader.load();
+
+        es.tfg.residencias.ui.trabajador.DialogoPrescripcionesControlador ctrl = loader.getController();
+        String nombreCompleto = fila.getNombre() + (fila.getApellidos() != null ? " " + fila.getApellidos() : "");
+        ctrl.setResidente(fila.getResidenteId(), nombreCompleto);
+
+        javafx.stage.Stage st = new javafx.stage.Stage();
+        st.setTitle("Prescripciones — " + nombreCompleto);
+
+    
+        javafx.scene.Scene scene = new javafx.scene.Scene(root);
+        scene.getStylesheets().add(Navegacion.appCss()); 
+        st.setScene(scene);
+
+        st.initOwner(tabla.getScene().getWindow());
+        st.initModality(javafx.stage.Modality.WINDOW_MODAL); 
+        st.showAndWait();
+
+        refrescar();
+    } catch (Exception e) {
+        error("No se pudo abrir el diálogo de prescripciones", e.getMessage());
+    }
+}
     @FXML
-        private void editarPrescripciones() {
+        private void editarDieta() {
             var fila = tabla.getSelectionModel().getSelectedItem();
             if (fila == null) { info("Selecciona un residente."); return; }
 
             try {
-                javafx.fxml.FXMLLoader loader =
-                        new javafx.fxml.FXMLLoader(getClass().getResource("/fxml/DialogoPrescripciones.fxml"));
-
+                java.net.URL url = getClass().getResource("/fxml/DialogoDieta.fxml");
+                if (url == null) {
+                    error("FXML no encontrado", "/fxml/DialogoDieta.fxml");
+                    return;
+                }
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(url);
                 javafx.scene.Parent root = loader.load();
 
-                es.tfg.residencias.ui.trabajador.DialogoPrescripcionesControlador ctrl = loader.getController();
+                var ctrl = (es.tfg.residencias.ui.trabajador.DialogoDietaControlador) loader.getController();
                 String nombreCompleto = fila.getNombre() + (fila.getApellidos() != null ? " " + fila.getApellidos() : "");
-                ctrl.setResidente(fila.getResidenteId(), nombreCompleto);
+                ctrl.setResidente(fila.getResidenteId(), nombreCompleto, fila.getDietaId(), fila.getDietaNotas());
 
                 javafx.stage.Stage st = new javafx.stage.Stage();
-                st.setTitle("Prescripciones — " + nombreCompleto);
-                st.setScene(new javafx.scene.Scene(root));  
+                st.setTitle("Cambiar dieta — " + nombreCompleto);
+
+                
+                javafx.scene.Scene scene = new javafx.scene.Scene(root);
+                scene.getStylesheets().add(Navegacion.appCss());
+                st.setScene(scene);
+
                 st.initOwner(tabla.getScene().getWindow());
+                st.initModality(javafx.stage.Modality.WINDOW_MODAL); // opcional, recomendable
                 st.showAndWait();
 
                 refrescar();
+
             } catch (Exception e) {
-                error("No se pudo abrir el diálogo de prescripciones", e.getMessage());
+                error("No se pudo abrir el diálogo de dieta", e.getClass().getSimpleName() + ": " + e.getMessage());
             }
         }
-
-    @FXML
-        private void editarDieta() {
-                var fila = tabla.getSelectionModel().getSelectedItem();
-                if (fila == null) { info("Selecciona un residente."); return; }
-
-                try {
-                    java.net.URL url = getClass().getResource("/fxml/DialogoDieta.fxml");
-                    if (url == null) {
-                        error("FXML no encontrado", "/fxml/DialogoDieta.fxml");
-                        return;
-                    }
-                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(url);
-                    javafx.scene.Parent root = loader.load();
-
-                    var ctrl = (es.tfg.residencias.ui.trabajador.DialogoDietaControlador) loader.getController();
-                    String nombreCompleto = fila.getNombre() + (fila.getApellidos() != null ? " " + fila.getApellidos() : "");
-                    ctrl.setResidente(fila.getResidenteId(), nombreCompleto, fila.getDietaId(), fila.getDietaNotas());
-
-                    javafx.stage.Stage st = new javafx.stage.Stage();
-                    st.setTitle("Cambiar dieta — " + nombreCompleto);
-                    st.setScene(new javafx.scene.Scene(root));
-                    st.initOwner(tabla.getScene().getWindow());
-                    st.showAndWait();
-
-                    refrescar();
-
-                } catch (Exception e) {
-                    error("No se pudo abrir el diálogo de dieta", e.getClass().getSimpleName() + ": " + e.getMessage());
-                }
-            }
-
-            @FXML
+           @FXML
             private void gestionarCitas() {
                 var fila = tabla.getSelectionModel().getSelectedItem();
                 if (fila == null) { 
@@ -189,18 +200,21 @@ public class PanelTrabajadorControlador {
                     javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(url);
                     javafx.scene.Parent root = loader.load();
 
-                    es.tfg.residencias.ui.trabajador.DialogoCitasControlador ctrl =
-                            loader.getController();
+                    es.tfg.residencias.ui.trabajador.DialogoCitasControlador ctrl = loader.getController();
 
-                    String nombreCompleto = fila.getNombre() + 
+                    String nombreCompleto = fila.getNombre() +
                             (fila.getApellidos() != null ? " " + fila.getApellidos() : "");
 
                     ctrl.setResidente(fila.getResidenteId(), nombreCompleto);
 
-                    
                     javafx.stage.Stage st = new javafx.stage.Stage();
                     st.setTitle("Citas médicas — " + nombreCompleto);
-                    st.setScene(new javafx.scene.Scene(root));
+
+                    // 👇 AÑADIR CSS A LA NUEVA ESCENA
+                    javafx.scene.Scene scene = new javafx.scene.Scene(root);
+                    scene.getStylesheets().add(Navegacion.appCss());
+                    st.setScene(scene);
+
                     st.initOwner(tabla.getScene().getWindow());
                     st.initModality(javafx.stage.Modality.WINDOW_MODAL);
                     st.showAndWait();
@@ -213,51 +227,55 @@ public class PanelTrabajadorControlador {
             }
 
 
-           @FXML
-            private void cerrarSesion(javafx.event.ActionEvent e) {
-                javafx.scene.control.Alert alerta = new javafx.scene.control.Alert(
-                        javafx.scene.control.Alert.AlertType.CONFIRMATION,
-                        "¿Seguro que quieres cerrar sesión?",
-                        javafx.scene.control.ButtonType.YES,
-                        javafx.scene.control.ButtonType.NO
-                );
-                alerta.setHeaderText("Cerrar sesión");
-                alerta.setTitle("Confirmar");
+        @FXML
+        private void cerrarSesion(javafx.event.ActionEvent e) {
+            javafx.scene.control.Alert alerta = new javafx.scene.control.Alert(
+                    javafx.scene.control.Alert.AlertType.CONFIRMATION,
+                    "¿Seguro que quieres cerrar sesión?",
+                    javafx.scene.control.ButtonType.YES,
+                    javafx.scene.control.ButtonType.NO
+            );
+            alerta.setHeaderText("Cerrar sesión");
+            alerta.setTitle("Confirmar");
 
-                java.util.Optional<javafx.scene.control.ButtonType> resultado = alerta.showAndWait();
-                if (resultado.isEmpty() || resultado.get() != javafx.scene.control.ButtonType.YES) {
+            // 👇 APLICAR TU CSS AL ALERT
+            Navegacion.aplicarCss(alerta);
+
+            java.util.Optional<javafx.scene.control.ButtonType> resultado = alerta.showAndWait();
+            if (resultado.isEmpty() || resultado.get() != javafx.scene.control.ButtonType.YES) {
+                return;
+            }
+
+            try {
+                trabajadorId = null;
+                nombreTrabajador = null;
+                datos.clear();
+
+                java.net.URL url = getClass().getResource("/fxml/AccesoVista.fxml");
+                if (url == null) {
+                    error("FXML no encontrado", "/fxml/AccesoVista.fxml");
                     return;
                 }
 
-                try {
-                    trabajadorId = null;
-                    nombreTrabajador = null;
-                    datos.clear();
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(url);
+                javafx.scene.Parent root = loader.load();
 
-                    java.net.URL url = getClass().getResource("/fxml/AccesoVista.fxml");
-                    if (url == null) {
-                        error("FXML no encontrado", "/fxml/AccesoVista.fxml");
-                        return;
-                    }
+                javafx.stage.Stage stage = (javafx.stage.Stage)
+                        ((javafx.scene.Node) e.getSource()).getScene().getWindow();
 
-                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(url);
-                    javafx.scene.Parent root = loader.load();
+                // 👇 AÑADIR CSS A LA NUEVA ESCENA (ventana de acceso)
+                javafx.scene.Scene scene = new javafx.scene.Scene(root);
+                scene.getStylesheets().add(Navegacion.appCss());
+                stage.setScene(scene);
 
-                    javafx.stage.Stage stage = (javafx.stage.Stage)
-                            ((javafx.scene.Node) e.getSource()).getScene().getWindow();
+                stage.setTitle("Acceso al sistema");
+                stage.show();
 
-                    stage.setScene(new javafx.scene.Scene(root));
-                    stage.setTitle("Acceso al sistema");
-                    stage.show();
-
-                } catch (Exception ex) {
-                    error("No se pudo volver al login",
-                        ex.getClass().getSimpleName() + ": " + ex.getMessage());
-                }
+            } catch (Exception ex) {
+                error("No se pudo volver al login",
+                    ex.getClass().getSimpleName() + ": " + ex.getMessage());
             }
-
-
-
+        }
 
     private void info(String msg) {
         Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);

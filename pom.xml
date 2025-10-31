@@ -54,7 +54,8 @@
         <version>0.0.8</version>
         <configuration>
           <mainClass>es.tfg.residencias.Main</mainClass>
-          <jvmArgs>--add-modules=javafx.controls,javafx.fxml</jvmArgs>
+          <option>--add-modules</option>
+          <option>avafx.controls,javafx.fxml</option>
         </configuration>
       </plugin>
 

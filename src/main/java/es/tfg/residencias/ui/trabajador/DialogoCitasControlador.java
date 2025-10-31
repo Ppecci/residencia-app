@@ -142,13 +142,19 @@ public class DialogoCitasControlador {
     private String nvl(String s) { return s == null ? "" : s; }
     private String txt(TextField tf) { return tf.getText() == null ? "" : tf.getText().trim(); }
 
-    private void info(String msg) { new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK).showAndWait(); }
+    private void info(String msg) { 
+        Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
+            a.getDialogPane().getStylesheets().add(es.tfg.residencias.ui.util.Navegacion.appCss());
+            a.showAndWait(); }
     private void error(String titulo, String detalle) {
         Alert a = new Alert(Alert.AlertType.ERROR, detalle, ButtonType.OK);
-        a.setHeaderText(titulo); a.showAndWait();
+        a.setHeaderText(titulo);
+        a.getDialogPane().getStylesheets().add(es.tfg.residencias.ui.util.Navegacion.appCss());
+        a.showAndWait();
     }
     private boolean confirm(String msg) {
         var a = new Alert(Alert.AlertType.CONFIRMATION, msg, ButtonType.YES, ButtonType.NO);
+        a.getDialogPane().getStylesheets().add(es.tfg.residencias.ui.util.Navegacion.appCss());
         var r = a.showAndWait();
         return r.isPresent() && r.get() == ButtonType.YES;
     }

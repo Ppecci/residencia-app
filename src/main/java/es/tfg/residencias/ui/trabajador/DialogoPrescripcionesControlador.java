@@ -13,13 +13,7 @@ import javafx.stage.Stage;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Diálogo de Prescripciones para el Panel Trabajador.
- * - Lista activas e histórico.
- * - Crea nuevas prescripciones.
- * - Edita (dosis/frecuencia/vía/notas) de activas.
- * - Finaliza activas (pone end_date).
- */
+
 public class DialogoPrescripcionesControlador {
 
     // ---- UI ----
@@ -44,13 +38,12 @@ public class DialogoPrescripcionesControlador {
 
     private Integer residenteId;
     @SuppressWarnings("unused")
-    private String  residenteNombre; // solo informativo (título)
+    private String  residenteNombre; 
 
     private boolean  modoNuevo = false;
 
     @FXML
     public void initialize() {
-        // Mapea columnas -> getters de PrescView
         colA_Med.setCellValueFactory(   new PropertyValueFactory<>("medicamento"));
         colA_Dosis.setCellValueFactory( new PropertyValueFactory<>("dosis"));
         colA_Frec.setCellValueFactory(  new PropertyValueFactory<>("frecuencia"));
@@ -83,9 +76,7 @@ public class DialogoPrescripcionesControlador {
         });
     }
 
-    /* ===================== API pública ===================== */
-
-    /** Llamar inmediatamente tras cargar el FXML. */
+    
     public void setResidente(int residenteId, String nombreCompleto) {
         this.residenteId = residenteId;
         this.residenteNombre = nombreCompleto;
@@ -98,7 +89,6 @@ public class DialogoPrescripcionesControlador {
         }
     }
 
-    /* ===================== Acciones de toolbar ===================== */
 
     @FXML private void refrescar() {
         if (residenteId == null) return;
@@ -141,6 +131,8 @@ public class DialogoPrescripcionesControlador {
         dlg.setTitle("Finalizar prescripción");
         dlg.setHeaderText("Fecha fin (YYYY-MM-DD)");
         dlg.setContentText("Fecha fin:");
+        dlg.getDialogPane().getStylesheets().add(es.tfg.residencias.ui.util.Navegacion.appCss());
+
         dlg.showAndWait().ifPresent(fecha -> {
             try {
                 presDAO.finalizar(cur.getId(), fecha);
@@ -199,8 +191,6 @@ public class DialogoPrescripcionesControlador {
         st.close();
     }
 
-    /* ===================== Helpers ===================== */
-
     private PrescView getSeleccionActual() {
         var selTab = tabs.getSelectionModel().getSelectedItem();
         if (selTab == null) return null;
@@ -223,7 +213,6 @@ public class DialogoPrescripcionesControlador {
     }
 
     private void cargarEnFormulario(PrescView p) {
-        // Selecciona el ítem del combo por etiqueta toString() (coincide con MedicacionDAO.Medicacion#toString)
         int medId = buscarMedicacionIdEnEtiqueta(p);
         if (medId != -1) {
             cbMedicacion.getItems().stream()
@@ -249,7 +238,7 @@ public class DialogoPrescripcionesControlador {
         StringBuilder sb = new StringBuilder(base);
         if (p.getForma()  != null && !p.getForma().isBlank())  sb.append(" · ").append(p.getForma());
         if (p.getFuerza() != null && !p.getFuerza().isBlank()) sb.append(" · ").append(p.getFuerza());
-        final String etiqueta = sb.toString(); // <- efectivamente final
+        final String etiqueta = sb.toString(); 
 
         return cbMedicacion.getItems().stream()
                 .filter(mi -> etiqueta.equals(mi.toString()))

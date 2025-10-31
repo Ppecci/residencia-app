@@ -97,6 +97,8 @@ private void cerrarSesion() {
     );
     alerta.setHeaderText("Cerrar sesión");
     alerta.setTitle("Confirmación");
+    alerta.getDialogPane().getStylesheets().add(es.tfg.residencias.ui.util.Navegacion.appCss());
+
 
     var res = alerta.showAndWait();
     if (res.isEmpty() || res.get() != javafx.scene.control.ButtonType.YES) return;
