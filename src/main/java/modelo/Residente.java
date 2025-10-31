@@ -4,9 +4,9 @@ public class Residente {
     private Integer id;
     private String nombre;
     private String apellidos;
-    private String fechaNacimiento; // yyyy-MM-dd
-    private String notas;           // puede ser null
-    private Boolean activo;         // 1/0 en BBDD
+    private String fechaNacimiento;
+    private String notas;           
+    private Boolean activo;         
 
     public Residente() {}
 

@@ -4,8 +4,8 @@ public class Usuario {
     private int id;
     private String username;
     private String rol; // ADMIN | TRABAJADOR | FAMILIAR
-    private Integer trabajadorId; // puede ser null
-    private Integer familiarId;   // puede ser null
+    private Integer trabajadorId;
+    private Integer familiarId;   
     private boolean activo;
 
     public int getId() { return id; }

@@ -1,9 +1,5 @@
 package modelo;
 
-/**
- * Fila maestra del Panel Trabajador.
- * Solo lectura: se usa para poblar la TableView del trabajador.
- */
 public class TrabajadorResumenFila {
 
     // Residente
@@ -17,14 +13,14 @@ public class TrabajadorResumenFila {
     private final String  habPlanta;
 
     // Dieta vigente
-    private final Integer dietaId;   // si no unes a 'dietas', mostramos el ID
+    private final Integer dietaId;   
     private final String  dietaNotas;
 
-    // Medicación (resumen de prescripciones activas)
+    // Medicación 
     private final String  medicacionResumen;
 
-    // Próxima cita programada
-    private final String  proximaCita; // formato ISO: "YYYY-MM-DD HH:MM" o null
+    // Próxima cita 
+    private final String  proximaCita; 
 
     public TrabajadorResumenFila(
             Integer residenteId,
@@ -50,7 +46,7 @@ public class TrabajadorResumenFila {
         this.proximaCita = proximaCita;
     }
 
-    // Getters para TableView (PropertyValueFactory usa estos nombres)
+    // Getters
     public Integer getResidenteId()       { return residenteId; }
     public String  getNombre()            { return nombre; }
     public String  getApellidos()         { return apellidos; }

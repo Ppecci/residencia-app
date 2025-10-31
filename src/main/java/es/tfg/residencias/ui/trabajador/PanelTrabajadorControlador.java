@@ -27,12 +27,11 @@ public class PanelTrabajadorControlador {
     private final TrabajadoresDAO dao = new TrabajadoresDAO();
     private final ObservableList<TrabajadorResumenFila> datos = FXCollections.observableArrayList();
 
-    private Integer trabajadorId;        // se inyecta tras el login
-    private String  nombreTrabajador;    // opcional, para el título
+    private Integer trabajadorId;        
+    private String  nombreTrabajador;    
 
     @FXML
     public void initialize() {
-        // Mapea columnas a getters del DTO
         colResidenteId.setCellValueFactory(new PropertyValueFactory<>("residenteId"));
         colNombre.setCellValueFactory(     new PropertyValueFactory<>("nombre"));
         colApellidos.setCellValueFactory(  new PropertyValueFactory<>("apellidos"));
@@ -41,7 +40,6 @@ public class PanelTrabajadorControlador {
         colHabNumero.setCellValueFactory(  new PropertyValueFactory<>("habNumero"));
         colHabPlanta.setCellValueFactory(  new PropertyValueFactory<>("habPlanta"));
 
-        // IMPORTANTE: usar "medicacionResumen" el DTO también tiene alias getMedicionResumen())
         colMedicacion.setCellValueFactory( new PropertyValueFactory<>("medicacionResumen"));
 
         colDietaId.setCellValueFactory(    new PropertyValueFactory<>("dietaId"));
@@ -52,7 +50,6 @@ public class PanelTrabajadorControlador {
         tabla.setItems(datos);
 
 
-        // Deshabilita botones de edición si no hay selección
         tabla.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
             boolean sel = (n != null);
             btnEditarPrescripciones.setDisable(!sel);
@@ -64,18 +61,14 @@ public class PanelTrabajadorControlador {
         btnEditarDieta.setDisable(true);
         btnCitas.setDisable(true);
 
-        // Si por cualquier razón ya está el trabajadorId seteado antes de initialize, refrescamos.
         if (trabajadorId != null) {
             refrescar();
         }
     }
 
-    /* ==== Métodos de inicialización desde el login ==== */
 
-    /** Llamar tras el login del trabajador. */
    public void setTrabajadorId(int trabajadorId) {
     this.trabajadorId = trabajadorId;
-                // Si no nos pasaron el nombre desde el login, lo cargamos de BD
                 if (this.nombreTrabajador == null || this.nombreTrabajador.isBlank()) {
                     try {
                         this.nombreTrabajador = dao.obtenerNombrePorId(trabajadorId).orElse(null);
@@ -87,7 +80,6 @@ public class PanelTrabajadorControlador {
                 if (tabla != null) refrescar();
                 actualizarTitulo();
             }
-    /** (Opcional) Para mostrar el nombre en la barra superior. */
     public void setNombreTrabajador(String nombre) {
         this.nombreTrabajador = nombre;
         actualizarTitulo();
@@ -103,7 +95,6 @@ public class PanelTrabajadorControlador {
         }
     }
 
-    /* ==== Acciones UI ==== */
 
     @FXML private void refrescar() { cargar(null); }
 
@@ -116,7 +107,6 @@ public class PanelTrabajadorControlador {
         }
         try {
             List<TrabajadorResumenFila> lista = dao.listarAsignados(trabajadorId, filtro);
-            // Compatibilidad con JavaFX que solo admite varargs en setAll/addAll:
             datos.setAll(lista.toArray(new TrabajadorResumenFila[0]));
         } catch (Exception e) {
             error("Error cargando datos", e.getMessage());
@@ -140,7 +130,7 @@ public class PanelTrabajadorControlador {
 
                 javafx.stage.Stage st = new javafx.stage.Stage();
                 st.setTitle("Prescripciones — " + nombreCompleto);
-                st.setScene(new javafx.scene.Scene(root));  // ahora sí: Scene(Parent)
+                st.setScene(new javafx.scene.Scene(root));  
                 st.initOwner(tabla.getScene().getWindow());
                 st.showAndWait();
 
@@ -166,7 +156,6 @@ public class PanelTrabajadorControlador {
 
                     var ctrl = (es.tfg.residencias.ui.trabajador.DialogoDietaControlador) loader.getController();
                     String nombreCompleto = fila.getNombre() + (fila.getApellidos() != null ? " " + fila.getApellidos() : "");
-                    // pasamos también lo que sabemos en la tabla (por si quieres usarlo); dentro el controlador vuelve a consultar la vigente
                     ctrl.setResidente(fila.getResidenteId(), nombreCompleto, fila.getDietaId(), fila.getDietaNotas());
 
                     javafx.stage.Stage st = new javafx.stage.Stage();
@@ -175,7 +164,6 @@ public class PanelTrabajadorControlador {
                     st.initOwner(tabla.getScene().getWindow());
                     st.showAndWait();
 
-                    // al cerrar, refrescamos para actualizar "Dieta ID" y "Notas dieta"
                     refrescar();
 
                 } catch (Exception e) {
@@ -192,7 +180,6 @@ public class PanelTrabajadorControlador {
                 }
 
                 try {
-                    // Usa la misma convención de rutas que tu diálogo de dieta
                     java.net.URL url = getClass().getResource("/fxml/DialogoCitas.fxml");
                     if (url == null) {
                         error("FXML no encontrado", "/fxml/DialogoCitas.fxml");
@@ -202,7 +189,6 @@ public class PanelTrabajadorControlador {
                     javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(url);
                     javafx.scene.Parent root = loader.load();
 
-                    // Controlador del diálogo
                     es.tfg.residencias.ui.trabajador.DialogoCitasControlador ctrl =
                             loader.getController();
 
@@ -219,7 +205,6 @@ public class PanelTrabajadorControlador {
                     st.initModality(javafx.stage.Modality.WINDOW_MODAL);
                     st.showAndWait();
 
-                    // refresca la tabla principal
                     refrescar();
 
                 } catch (Exception e) {
@@ -230,7 +215,6 @@ public class PanelTrabajadorControlador {
 
            @FXML
             private void cerrarSesion(javafx.event.ActionEvent e) {
-                // --- Diálogo de confirmación ---
                 javafx.scene.control.Alert alerta = new javafx.scene.control.Alert(
                         javafx.scene.control.Alert.AlertType.CONFIRMATION,
                         "¿Seguro que quieres cerrar sesión?",
@@ -242,17 +226,14 @@ public class PanelTrabajadorControlador {
 
                 java.util.Optional<javafx.scene.control.ButtonType> resultado = alerta.showAndWait();
                 if (resultado.isEmpty() || resultado.get() != javafx.scene.control.ButtonType.YES) {
-                    // Si el usuario cancela, no hacemos nada
                     return;
                 }
 
                 try {
-                    // --- Limpieza de sesión ---
                     trabajadorId = null;
                     nombreTrabajador = null;
                     datos.clear();
 
-                    // --- Volver al login ---
                     java.net.URL url = getClass().getResource("/fxml/AccesoVista.fxml");
                     if (url == null) {
                         error("FXML no encontrado", "/fxml/AccesoVista.fxml");
@@ -277,7 +258,6 @@ public class PanelTrabajadorControlador {
 
 
 
-    /* ==== Helpers ==== */
 
     private void info(String msg) {
         Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);

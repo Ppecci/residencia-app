@@ -4,10 +4,9 @@ public class Trabajador {
     private Integer id;
     private String nombre;
     private String usuario;
-    private String email;     // puede ser null
-    private Boolean activo;   // 1/0 en BBDD
+    private String email;     
+    private Boolean activo;  
 
-    // campo temporal SOLO para alta/edición de password (no persistente en objeto)
     private transient String passwordHashTemporal;
 
     public Trabajador() {}
@@ -27,7 +26,6 @@ public class Trabajador {
 
      @Override
     public String toString() {
-        // Muestra “Nombre (usuario)”
         String u = (usuario == null || usuario.isBlank()) ? "" : " (" + usuario + ")";
         return (nombre == null ? "" : nombre) + u;
 }

@@ -18,7 +18,7 @@ public class PanelFamiliarControlador {
 
     // Top bar
     @FXML private Label lblFamiliar;
-    @FXML private Label lblResidente;   // si hay varios, puedes dejarlo vacío o poner "Todos"
+    @FXML private Label lblResidente;   
     @FXML private TextField txtBuscar;
 
     // Tabla
@@ -34,36 +34,27 @@ public class PanelFamiliarControlador {
     @FXML private TableColumn<FilaResumenFamiliar, String> colDietaNotas;
     @FXML private TableColumn<FilaResumenFamiliar, String> colProximaCita;
 
-    // Bottom status
+   
     @FXML private Label lblEstado;
 
     // Dependencias
     private final FamiliarDAO familiarDAO = new FamiliarDAO();
 
-    // Contexto de sesión (ajusta a tu proyecto)
-    private int familiarId;        // lo rellenaremos en initialize()
-    private String nombreFamiliar; // para mostrar en el encabezado
+    private int familiarId;        
+    private String nombreFamiliar; 
 
     private final ObservableList<FilaResumenFamiliar> datos = FXCollections.observableArrayList();
     private final DateTimeFormatter horaFmt = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     @FXML
     public void initialize() {
-        // 1) Cargar info de sesión (ADAPTA a tu clase real de sesión)
-        // ----------------------------------------------------------------
-        // Ejemplos típicos:
-        //   this.familiarId = Sesion.getUsuarioActual().getFamiliarId();
-        //   this.nombreFamiliar = Sesion.getUsuarioActual().getNombre();
-        //
-        // Para que puedas arrancar ya mismo, dejamos valores "dummy"
-        // y en cuanto tengas tu clase de sesión, sustituyes estas 2 líneas.
+        
         this.familiarId = obtenerFamiliarIdDesdeSesion();
         this.nombreFamiliar = obtenerNombreFamiliarDesdeSesion();
 
         lblFamiliar.setText(nombreFamiliar != null ? nombreFamiliar : "(Familiar)");
 
-        // 2) Configurar columnas (solo lectura)
-        // ----------------------------------------------------------------
+       
         tabla.setEditable(false);
         tabla.setPlaceholder(new Label("Sin datos para mostrar"));
 
@@ -80,8 +71,6 @@ public class PanelFamiliarControlador {
 
         tabla.setItems(datos);
 
-        // 3) Cargar datos iniciales
-        // ----------------------------------------------------------------
         cargarTabla(null);
     }
 
@@ -96,19 +85,36 @@ public class PanelFamiliarControlador {
         txtBuscar.clear();
         cargarTabla(null);
     }
+@FXML private javafx.scene.control.Button btnCerrarSesion;
 
-    @FXML
-    private void cerrarSesion() {
-        try {
-            // Ajusta a tu util de navegación / escena de login:
-            // Navegacion.cambiar("/fxml/Acceso.fxml");
-            // Si no tienes Navegacion utilitario, deja este TODO y gestiona en tu app.
-            System.out.println("Cerrar sesión solicitado (implementa tu navegación a login)");
-            setEstado("Sesión cerrada (demo).");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            setEstado("Error al cerrar sesión.");
-        }
+@FXML
+private void cerrarSesion() {
+    var alerta = new javafx.scene.control.Alert(
+            javafx.scene.control.Alert.AlertType.CONFIRMATION,
+            "¿Seguro que quieres cerrar sesión?",
+            javafx.scene.control.ButtonType.YES,
+            javafx.scene.control.ButtonType.NO
+    );
+    alerta.setHeaderText("Cerrar sesión");
+    alerta.setTitle("Confirmación");
+
+    var res = alerta.showAndWait();
+    if (res.isEmpty() || res.get() != javafx.scene.control.ButtonType.YES) return;
+
+    try {
+        javafx.scene.Parent root = javafx.fxml.FXMLLoader.load(
+                getClass().getResource("/fxml/AccesoVista.fxml"));
+        btnCerrarSesion.getScene().setRoot(root);
+    } catch (Exception e) {
+        mostrarError("No se pudo cargar /fxml/AccesoVista.fxml", e);
+    }
+}
+    private void mostrarError(String msg, Exception e) {
+        e.printStackTrace();
+        Alert a = new Alert(Alert.AlertType.ERROR, msg);
+
+        a.setHeaderText("Error de carga");
+        a.showAndWait();
     }
 
     private void cargarTabla(String filtro) {
@@ -119,7 +125,6 @@ public class PanelFamiliarControlador {
 
 
             datos.setAll(lista);
-            // Si el familiar solo tiene 1 residente, puedes mostrarlo aquí:
             lblResidente.setText(residenteTextoCabecera(lista));
             setEstado("Datos actualizados a las " + LocalDateTime.now().format(horaFmt));
         } catch (Exception ex) {
@@ -130,11 +135,9 @@ public class PanelFamiliarControlador {
 
     private String residenteTextoCabecera(List<FilaResumenFamiliar> filas) {
         if (filas == null || filas.isEmpty()) return "(Sin residentes asignados)";
-        // Si hay varios residentes, puedes dejar “Varios” o vacío
         Integer firstId = filas.get(0).getIdResidente();
         boolean todosMismo = filas.stream().allMatch(f -> Objects.equals(f.getIdResidente(), firstId));
         if (todosMismo) {
-            // si todos son del mismo residente, muestra su nombre/apellidos
             var f = filas.get(0);
             return f.getNombre() + " " + f.getApellidos();
         }
@@ -145,10 +148,7 @@ public class PanelFamiliarControlador {
         lblEstado.setText(texto != null ? texto : "");
     }
 
-    // ----------------------
-    // Simulación de sesión
-    // (Sustituye por tu clase real de sesión/login)
-    // ----------------------
+
    private int obtenerFamiliarIdDesdeSesion() {
     Usuario usuario = Sesion.getUsuario();
     if (usuario != null && usuario.getFamiliarId() != 0) {

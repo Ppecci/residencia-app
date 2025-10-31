@@ -14,7 +14,6 @@
             fx:controller="es.tfg.residencias.ui.familiar.PanelFamiliarControlador"
             prefWidth="1000" prefHeight="600">
 
-    <!-- Encabezado: familiar + residente + buscador + refrescar -->
     <top>
         <ToolBar>
             <items>
@@ -28,12 +27,11 @@
                 <Button text="Buscar"   onAction="#buscar"/>
                 <Button text="Refrescar" onAction="#refrescar"/>
                 <Separator/>
-                <Button text="Cerrar sesión" onAction="#cerrarSesion"/>
+                <Button fx:id="btnCerrarSesion" text="Cerrar sesión" onAction="#cerrarSesion"/>
             </items>
         </ToolBar>
     </top>
 
-    <!-- Tabla central SOLO LECTURA con las 10 columnas acordadas -->
     <center>
         <TableView fx:id="tabla" editable="false">
             <columns>

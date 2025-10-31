@@ -4,12 +4,12 @@ public class PrescripcionVista {
     private final Integer id;
     private final Integer residenteId;
     private final Integer medicacionId;
-    private final String  medicacionNombre; // m.nombre + (forma/fuerza)
+    private final String  medicacionNombre; 
     private final String  dosis;
     private final String  frecuencia;
     private final String  via;
     private final String  startDate;
-    private final String  endDate;          // null si activa
+    private final String  endDate;          
     private final String  notas;
 
     public PrescripcionVista(Integer id, Integer residenteId, Integer medicacionId, String medicacionNombre,
