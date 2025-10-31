@@ -41,7 +41,10 @@ public class AccesoControlador {
             Sesion.setUsuario(u);
 
             switch (u.getRol()) {
-                case "ADMIN" -> Navegacion.cambiar("/fxml/PanelAdmin.fxml");
+                  case "ADMIN" -> {
+                        Navegacion.cambiar("/fxml/PanelAdmin.fxml");
+                        Navegacion.maximizar(); 
+                    }
 
                 case "TRABAJADOR" -> {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/PanelTrabajador.fxml"));
@@ -61,9 +64,14 @@ public class AccesoControlador {
                     // Mostramos
                     Scene scene = accederBoton.getScene();
                     scene.setRoot(root);
+                    Navegacion.maximizar();
+
                 }
 
-                case "FAMILIAR" -> Navegacion.cambiar("/fxml/PanelFamiliar.fxml");
+                case "FAMILIAR" -> {
+                    Navegacion.cambiar("/fxml/PanelFamiliar.fxml");
+                    Navegacion.maximizar();
+                }   
                 default -> errorEtiqueta.setText("Rol no reconocido: " + u.getRol());
             }
 

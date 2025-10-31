@@ -51,4 +51,9 @@ public class Navegacion {
     public static String appCss() {
         return APP_CSS;
     }
+
+    //maximizar la ventana actual
+    public static void maximizar() {
+        stage.setMaximized(true);
+    }
 }
