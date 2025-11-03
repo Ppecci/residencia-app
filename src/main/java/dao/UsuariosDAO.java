@@ -9,17 +9,19 @@ import java.sql.ResultSet;
 
 public class UsuariosDAO {
 
-    public Usuario login(String username, String passwordHash) throws Exception {
+    
+    public Usuario buscarPorUsername(String username) throws Exception {
         String sql = """
-            SELECT id, username, rol, trabajador_id, familiar_id, activo
+            SELECT id, username, rol, trabajador_id, familiar_id, activo, password_hash
             FROM usuarios
-            WHERE username = ? AND password_hash = ? AND activo = 1
+            WHERE username = ? AND activo = 1
         """;
 
         try (Connection c = ConexionBD.obtener();
              PreparedStatement ps = c.prepareStatement(sql)) {
+
             ps.setString(1, username);
-            ps.setString(2, passwordHash); // De momento comparamos tal cual (HASH_PROVISIONAL)
+
             try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) return null;
 
@@ -35,8 +37,9 @@ public class UsuariosDAO {
                 u.setFamiliarId(rs.wasNull() ? null : f);
 
                 u.setActivo(rs.getInt("activo") == 1);
+                u.setPasswordHash(rs.getString("password_hash")); // <-- necesario para BCrypt
                 return u;
             }
-        }       
+        }
     }
 }
