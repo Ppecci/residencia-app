@@ -30,11 +30,13 @@
   </center>
 
   <bottom>
-    <ToolBar>
-      <TextField fx:id="inNumero" promptText="Número (único)"/>
-      <TextField fx:id="inPlanta" promptText="Planta"/>
-      <Label text="(ej.: 101, 2A… · Planta: 1ª, 2ª, Baja)"/>
-    </ToolBar>
-  </bottom>
+      <ToolBar>
+        <TextField fx:id="inNumero" promptText="Número (único)"/>
+        <TextField fx:id="inPlanta" promptText="Planta"/>
+        <Label text="(ej.: 101, 2A… · Planta: 1ª, 2ª, Baja)"/>
+        <Separator orientation="VERTICAL"/>
+        <Button text="Añadir" onAction="#anadirHabitacion"/>
+      </ToolBar>
+    </bottom>
 
 </BorderPane>

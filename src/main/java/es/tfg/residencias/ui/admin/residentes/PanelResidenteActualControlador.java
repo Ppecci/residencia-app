@@ -119,7 +119,7 @@ private void cambiarHabitacion() {
         var notas = notasInput.showAndWait().orElse("");
 
         String hoy = LocalDate.now().toString(); // YYYY-MM-DD
-        habitacionDAO.cambiarHabitacion(residente.getId(), nueva.id, hoy, notas);
+        habitacionDAO.asignarOActualizar(residente.getId(), nueva.id, hoy, notas);
 
         cargarHabitacion();
         cargarHistorico();

@@ -17,6 +17,8 @@ public class HabitacionesControlador {
 
     @FXML private TextField txtBuscar;
     @FXML private ComboBox<Modo> cbModo;
+    @FXML private TextField inNumero;
+    @FXML private TextField inPlanta;
 
     private final HabitacionDAO dao = new HabitacionDAO();
     private final ObservableList<HabitacionOcupacionVista> datos = FXCollections.observableArrayList();
@@ -52,6 +54,39 @@ public class HabitacionesControlador {
 
     @FXML private void refrescar() { cargar(null); }
     @FXML private void buscar()    { cargar(txtBuscar.getText()); }
+
+    @FXML
+        private void anadirHabitacion() {
+            String numero = (inNumero.getText() == null) ? "" : inNumero.getText().trim();
+            String planta = (inPlanta.getText() == null) ? "" : inPlanta.getText().trim();
+
+            if (numero.isBlank()) {
+                error("Datos incompletos", "El número de habitación es obligatorio.");
+                inNumero.requestFocus();
+                return;
+            }
+
+            try {
+                int id = dao.insertarHabitacion(numero, planta.isBlank() ? null : planta);
+                // Limpieza + refresco
+                inNumero.clear();
+                inPlanta.clear();
+                refrescar();
+
+                Alert ok = new Alert(Alert.AlertType.INFORMATION, "Habitación creada (id=" + id + ").");
+                ok.setHeaderText("Éxito");
+                ok.showAndWait();
+                inNumero.requestFocus();
+            } catch (Exception e) {
+                // Mensaje “bonito” si viola UNIQUE de 'numero'
+                String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
+                if (msg.contains("unique") || msg.contains("constraint")) {
+                    error("Número duplicado", "Ya existe una habitación con ese número.");
+                } else {
+                    error("Error al crear habitación", e.getMessage());
+                }
+            }
+        }
 
     private void cargar(String filtro) {
         try {

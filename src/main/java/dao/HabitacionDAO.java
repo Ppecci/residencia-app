@@ -84,41 +84,146 @@ public class HabitacionDAO {
     }
 
     public void cambiarHabitacion(int residenteId, int nuevaHabitacionId, String startDate, String notas) throws Exception {
-        try (var c = ConexionBD.obtener()) {
-            c.setAutoCommit(false);
-            try {
-                // cerrar vigente
-                try (var ps = c.prepareStatement("""
-                        UPDATE residente_habitacion
-                        SET end_date = ?
-                        WHERE residente_id = ? AND (end_date IS NULL OR end_date = '')
-                    """)) {
-                    ps.setString(1, startDate);
-                    ps.setInt(2, residenteId);
-                    ps.executeUpdate();
-                }
-                // crear nueva
-                try (var ps = c.prepareStatement("""
-                        INSERT INTO residente_habitacion (residente_id, habitacion_id, start_date, notas)
-                        VALUES (?,?,?,?)
-                    """)) {
-                    ps.setInt(1, residenteId);
-                    ps.setInt(2, nuevaHabitacionId);
-                    ps.setString(3, startDate);
-                    ps.setString(4, notas);
-                    ps.executeUpdate();
-                }
-                c.commit();
-            } catch (Exception e) {
-                c.rollback();
-                throw e;
-            } finally {
-                c.setAutoCommit(true);
+    try (var c = ConexionBD.obtener()) {
+        
+        c.setAutoCommit(false);
+        try {
+            // ⛔️ Bloqueo: no permitir asignar una habitación ocupada por otro residente
+            if (ocupadaPorOtro(nuevaHabitacionId, residenteId)) {
+                throw new SQLException("La habitación seleccionada ya está ocupada.");
             }
+
+            // 1) Cerrar la asignación vigente del residente (si la hay)
+            try (var ps = c.prepareStatement("""
+                    UPDATE residente_habitacion
+                       SET end_date = ?
+                     WHERE residente_id = ?
+                       AND (end_date IS NULL OR end_date = '')
+                """)) {
+                ps.setString(1, startDate);
+                ps.setInt(2, residenteId);
+                ps.executeUpdate();
+            }
+
+            // 2) Crear la nueva asignación
+            try (var ps = c.prepareStatement("""
+                    INSERT INTO residente_habitacion (residente_id, habitacion_id, start_date, notas)
+                    VALUES (?,?,?,?)
+                """)) {
+                ps.setInt(1, residenteId);
+                ps.setInt(2, nuevaHabitacionId);
+                ps.setString(3, startDate);
+                ps.setString(4, notas);
+                ps.executeUpdate();
+            }
+
+            c.commit();
+        } catch (Exception e) {
+            c.rollback();
+            throw e;
+        } finally {
+            c.setAutoCommit(true);
         }
     }
+}
+/** Asigna por primera vez una habitación a un residente SIN asignación activa. */
+public void asignarHabitacionInicial(int residenteId, int habitacionId, String startDate, String notas) throws Exception {
+    try (Connection c = ConexionBD.obtener()) {
+        c.setAutoCommit(false);
+        try {
+            // 1) El residente no puede tener ya una habitación activa
+            if (tieneAsignacionActiva(residenteId)) {
+                throw new SQLException("El residente ya tiene una habitación activa. Use 'cambiarHabitacion'.");
+            }
+            // 2) La habitación debe estar libre
+            if (estaOcupada(habitacionId)) {
+                throw new SQLException("La habitación seleccionada ya está ocupada.");
+            }
+
+            // 3) Insertar la nueva asignación
+            try (PreparedStatement ps = c.prepareStatement("""
+                    INSERT INTO residente_habitacion (residente_id, habitacion_id, start_date, notas)
+                    VALUES (?,?,?,?)
+                """)) {
+                ps.setInt(1, residenteId);
+                ps.setInt(2, habitacionId);
+                ps.setString(3, startDate);
+                ps.setString(4, notas);
+                ps.executeUpdate();
+            }
+
+            c.commit();
+        } catch (Exception e) {
+            c.rollback();
+            throw e;
+        } finally {
+            c.setAutoCommit(true);
+        }
+    }
+}
+
+/** Decide automáticamente: si no tiene activa, asigna; si tiene, cambia. */
+public void asignarOActualizar(int residenteId, int habitacionId, String startDate, String notas) throws Exception {
+    if (tieneAsignacionActiva(residenteId)) {
+        cambiarHabitacion(residenteId, habitacionId, startDate, notas); // usa ocupadaPorOtro(...)
+    } else {
+        asignarHabitacionInicial(residenteId, habitacionId, startDate, notas); // usa estaOcupada(...)
+    }
+}
 
 
+    private boolean estaOcupada(int habitacionId) throws SQLException {
+    String sql = """
+        SELECT 1
+        FROM residente_habitacion
+        WHERE habitacion_id = ?
+          AND (end_date IS NULL OR end_date = '')
+        LIMIT 1
+    """;
+    try (Connection c = ConexionBD.obtener();
+         PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setInt(1, habitacionId);
+        try (ResultSet rs = ps.executeQuery()) {
+            return rs.next();
+        }
+    }
+}
+private boolean tieneAsignacionActiva(int residenteId) throws SQLException {
+    String sql = """
+        SELECT 1
+        FROM residente_habitacion
+        WHERE residente_id = ?
+          AND (end_date IS NULL OR end_date = '')
+        LIMIT 1
+    """;
+    try (Connection c = ConexionBD.obtener();
+         PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setInt(1, residenteId);
+        try (ResultSet rs = ps.executeQuery()) {
+            return rs.next(); // true = ya tiene una habitación activa
+        }
+    }
+}
+
+// Igual que arriba, pero ignorando al propio residente (para no chocar si ya estaba ahí)
+private boolean ocupadaPorOtro(int habitacionId, int residenteId) throws SQLException {
+    String sql = """
+        SELECT 1
+        FROM residente_habitacion
+        WHERE habitacion_id = ?
+          AND residente_id <> ?
+          AND (end_date IS NULL OR end_date = '')
+        LIMIT 1
+    """;
+    try (Connection c = ConexionBD.obtener();
+         PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setInt(1, habitacionId);
+        ps.setInt(2, residenteId);
+        try (ResultSet rs = ps.executeQuery()) {
+            return rs.next();
+        }
+    }
+}
     public static class HistHab {
         public final String numero, planta, desde, hasta, notas;
         public HistHab(String numero, String planta, String desde, String hasta, String notas) {
