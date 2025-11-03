@@ -9,6 +9,8 @@ import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.StackPane;
+import org.mindrot.jbcrypt.BCrypt;
+
 
 public class TrabajadoresControlador {
 
@@ -19,7 +21,7 @@ public class TrabajadoresControlador {
 
     @FXML private TextField txtBuscar;
     @FXML private TextField inNombre, inUsuario, inEmail;
-    @FXML private PasswordField inPassword; // solo en "nuevo" o si se quiere cambiar
+    @FXML private PasswordField inPassword; 
     @FXML private CheckBox  chkActivo;
 
     private final TrabajadoresDAO dao = new TrabajadoresDAO();
@@ -38,7 +40,7 @@ public class TrabajadoresControlador {
         tabla.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> seleccionado = n);
         refrescar();
 
-        // doble click → detalle
+        
         tabla.setRowFactory(tv -> {
             TableRow<modelo.Trabajador> row = new TableRow<>();
             row.setOnMouseClicked(ev -> {
@@ -74,7 +76,7 @@ public class TrabajadoresControlador {
         inNombre.setText(seleccionado.getNombre());
         inUsuario.setText(seleccionado.getUsuario());
         inEmail.setText(seleccionado.getEmail());
-        if (inPassword != null) inPassword.clear(); // solo cambiar si el usuario escribe algo
+        if (inPassword != null) inPassword.clear(); 
         if (chkActivo != null) chkActivo.setSelected(Boolean.TRUE.equals(seleccionado.getActivo()));
     }
 
@@ -115,7 +117,7 @@ public class TrabajadoresControlador {
             TrabajadorDetalleControlador ctrl = loader.getController();
             ctrl.setTrabajador(t);
 
-            // Cambia el centro 
+
             StackPane centro = (StackPane) tabla.getScene().lookup("#contenedorCentro");
             if (centro == null) {
                 error("No se encontró el contenedor central",
@@ -130,43 +132,52 @@ public class TrabajadoresControlador {
         }
     }
 
-    @FXML
-    private void guardar() {
-        String nombre = inNombre.getText();
-        String usuario = inUsuario.getText();
-        String email   = inEmail.getText();
-        String pwd     = (inPassword == null ? null : inPassword.getText());
-        boolean activo = (chkActivo == null) || chkActivo.isSelected();
+   @FXML
+private void guardar() {
+    String nombre = inNombre.getText().trim();
+    String usuario = inUsuario.getText().trim();
+    String email   = inEmail.getText().trim();
+    String pwd     = (inPassword == null ? null : inPassword.getText());
+    boolean activo = (chkActivo == null) || chkActivo.isSelected();
 
-        if (nombre.isBlank() || usuario.isBlank()) {
-            info("Nombre y usuario son obligatorios"); return;
+    if (nombre.isBlank() || usuario.isBlank()) {
+        info("Nombre y usuario son obligatorios"); return;
+    }
+
+    try {
+        if (seleccionado == null || seleccionado.getId() == null) {
+            
+            if (pwd == null || pwd.isBlank()) {
+                info("La contraseña es obligatoria al crear un trabajador"); return;
+            }
+
+            String hash = BCrypt.hashpw(pwd, BCrypt.gensalt(12));
+
+            Trabajador t = new Trabajador(null, nombre, usuario, email, activo);
+            t.setPasswordHashTemporal(hash); 
+            dao.insertar(t);
+
+        } else {
+            seleccionado.setNombre(nombre);
+            seleccionado.setUsuario(usuario);
+            seleccionado.setEmail(email);
+            seleccionado.setActivo(activo);
+            dao.actualizar(seleccionado);
+
+            if (pwd != null && !pwd.isBlank()) {
+              
+                String hash = BCrypt.hashpw(pwd, BCrypt.gensalt(12));
+                dao.actualizarPassword(seleccionado.getId(), hash);
+            }
         }
 
-        try {
-            if (seleccionado == null || seleccionado.getId() == null) {
-                if (pwd == null || pwd.isBlank()) {
-                    info("La contraseña es obligatoria al crear un trabajador"); return;
-                }
-                String hash = "HASH_PROVISIONAL";
-                Trabajador t = new Trabajador(null, nombre, usuario, email, activo);
-                t.setPasswordHashTemporal(hash);
-                dao.insertar(t);
-            } else {
-                // actualizar datos básicos
-                seleccionado.setNombre(nombre);
-                seleccionado.setUsuario(usuario);
-                seleccionado.setEmail(email);
-                seleccionado.setActivo(activo);
-                dao.actualizar(seleccionado);
+        nuevo();
+        refrescar();
 
-                if (pwd != null && !pwd.isBlank()) {
-                    String hash = "HASH_PROVISIONAL";
-                    dao.actualizarPassword(seleccionado.getId(), hash);
-                }
-            }
-            nuevo(); refrescar();
-        } catch (Exception e) { error("No se pudo guardar", e.getMessage()); }
+    } catch (Exception e) {
+        error("No se pudo guardar", e.getMessage());
     }
+}
 
     private void info(String msg) {
         Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);

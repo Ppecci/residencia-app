@@ -10,7 +10,7 @@ public class ConexionBD {
             Paths.get("data", "residenciaSauces.db").toAbsolutePath().toString();
     private static final String URL = "jdbc:sqlite:" + DB_PATH;
 
-    public static Connection obtener() throws Exception {
+    public static Connection obtener() throws java.sql.SQLException {
         Connection c = DriverManager.getConnection(URL);
         try (Statement st = c.createStatement()) {
             st.execute("PRAGMA foreign_keys = ON;");

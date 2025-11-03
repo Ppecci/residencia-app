@@ -11,6 +11,8 @@ import modelo.Residente;
 
 import java.time.LocalDate;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 import dao.HabitacionDAO;
 import dao.PrescripcionDAO;
 import es.tfg.residencias.ui.util.Navegacion;
@@ -598,11 +600,15 @@ private void crearNuevoYVincular() {
         var res = dlg.showAndWait();
         if (res.isEmpty() || res.get() != guardar) return;
 
-        String hash ="HASH_PROVISIONAL";
+        // ⬇️⬇️ AQUÍ EL CAMBIO: crear hash real con BCrypt
+        String passPlano = inPass.getText();
+        String hash = BCrypt.hashpw(passPlano, BCrypt.gensalt(12)); // ⬅️ hash seguro
+        // ⬆️⬆️ FIN DEL CAMBIO
+
         int nuevoId = familiarDAO.crearFamiliar(
             inNombre.getText().trim(),
             inUsuario.getText().trim(),
-            hash,
+            hash, // ⬅️ usar el hash generado
             inEmail.getText().trim()
         );
         familiarDAO.insertarAsignacion(residente.getId(), nuevoId, inParentesco.getText().trim());
@@ -614,6 +620,7 @@ private void crearNuevoYVincular() {
         new Alert(Alert.AlertType.ERROR, "Error al crear/vincular:\n" + e.getMessage()).showAndWait();
     }
 }
+
 @FXML
 private void editarFamiliar() {
     if (tablaFamilia == null || tablaFamilia.getSelectionModel().getSelectedItem() == null) {

@@ -1,5 +1,7 @@
 package es.tfg.residencias.ui.admin.familiares;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 import dao.FamiliarDAO; 
 
 import javafx.collections.*;
@@ -80,33 +82,61 @@ public class FamiliaresControlador {
     }
 
     @FXML
-    private void guardar() {
-        String nombre = inNombre.getText();
-        String usuario = inUsuario.getText();
-        String email   = inEmail.getText();
-        String pass    = (inPassword == null ? null : inPassword.getText());
+private void guardar() {
+    String nombre = inNombre.getText() == null ? "" : inNombre.getText().trim();
+    String usuario = inUsuario.getText() == null ? "" : inUsuario.getText().trim();
+    String email   = inEmail.getText() == null ? "" : inEmail.getText().trim();
+    String pass    = (inPassword == null ? null : inPassword.getText());
 
-        if (nombre.isBlank()) { info("Nombre es obligatorio"); return; }
+    if (nombre.isBlank()) { info("Nombre es obligatorio"); return; }
 
-        try {
-            if (seleccionado == null || seleccionado.getId() == null) {
-                if (usuario.isBlank() || pass == null || pass.isBlank()) {
-                    info("Usuario y contraseña son obligatorios en el alta"); return;
-                }
-                Familiar f = new Familiar(null, nombre, usuario, email);
-                f.setPasswordHashTemporal(pass);
-                dao.insertar(f);
-            } else {
-                seleccionado.setNombre(nombre);
-                seleccionado.setEmail(email);
-                dao.actualizarBasico(seleccionado);
+    try {
+        if (seleccionado == null || seleccionado.getId() == null) {
+            // --- CREAR
+            if (usuario.isBlank() || pass == null || pass.isBlank()) {
+                info("Usuario y contraseña son obligatorios en el alta"); return;
             }
-            nuevo(); refrescar();
-        } catch (Exception e) {
-            e.printStackTrace();
-            error("No se pudo guardar", e.getMessage());
+            if (pass.length() < 8) {
+                info("La contraseña debe tener al menos 8 caracteres"); return;
+            }
+
+           
+            String hash = BCrypt.hashpw(pass, BCrypt.gensalt(12));
+
+            // Opción A (recomendada): llamar a crearFamiliar(...) que inserta en familiares + usuarios
+            dao.crearFamiliar(nombre, usuario, hash, email);
+
+            // Opción B (solo si prefieres mantener tu flujo actual):
+            // Familiar f = new Familiar(null, nombre, usuario, email);
+            // f.setPasswordHashTemporal(hash);
+            // dao.insertar(f); // <-- asegúrate de que insertar(...) delega a crearFamiliar(...)
+
+        } else {
+            
+            seleccionado.setNombre(nombre);
+            seleccionado.setEmail(email);
+            dao.actualizarBasico(seleccionado);
+
+            // Si se ha escrito nueva contraseña, rehash y actualiza en 'usuarios'
+            if (pass != null && !pass.isBlank()) {
+                if (pass.length() < 8) {
+                    info("La contraseña debe tener al menos 8 caracteres"); return;
+                }
+                String hash = BCrypt.hashpw(pass, BCrypt.gensalt(12));
+                // método en el DAO para actualizar la contraseña del familiar en 'usuarios'
+                dao.actualizarPasswordFamiliar(seleccionado.getId(), hash);
+            }
         }
+
+        nuevo();
+        refrescar();
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        error("No se pudo guardar", e.getMessage());
     }
+}
+
 
     @FXML
     private void eliminar() {

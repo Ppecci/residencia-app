@@ -4,8 +4,8 @@ import bd.ConexionBD;
 import java.sql.*;
 import java.util.*;
 
-import modelo.Familiar;                // modelo para el panel de administración
-import modelo.FilaResumenFamiliar;   // DTO de la tabla del Panel Familiar
+import modelo.Familiar;                // panel de administración
+import modelo.FilaResumenFamiliar;   // Panel Familiar
 
 
 public class FamiliarDAO {
@@ -54,17 +54,27 @@ public class FamiliarDAO {
         }
     }
 
-   
-    public List<FamiliarAsignado> listarAsignados(int residenteId) throws Exception {
+    
+        public List<FamiliarAsignado> listarAsignados(int residenteId) throws Exception {
         String sql = """
-            SELECT rf.id AS id_rel, f.id AS id_fam, f.nombre, f.usuario, f.email, rf.parentesco
+            SELECT 
+                rf.id AS id_rel,
+                f.id  AS id_fam,
+                f.nombre,
+                u.username AS usuario,              -- ← AHORA VIENE DE usuarios
+                f.email,
+                rf.parentesco
             FROM residente_familiar rf
             JOIN familiares f ON f.id = rf.familiar_id
+            LEFT JOIN usuarios u
+                ON u.familiar_id = f.id
+                AND u.rol = 'FAMILIAR'
+                AND u.activo = 1
             WHERE rf.residente_id = ?
             ORDER BY f.nombre
         """;
         try (Connection c = ConexionBD.obtener();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+            PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, residenteId);
             try (ResultSet rs = ps.executeQuery()) {
                 List<FamiliarAsignado> out = new ArrayList<>();
@@ -73,7 +83,7 @@ public class FamiliarDAO {
                         rs.getInt("id_rel"),
                         rs.getInt("id_fam"),
                         rs.getString("nombre"),
-                        rs.getString("usuario"),
+                        rs.getString("usuario"),   
                         rs.getString("email"),
                         rs.getString("parentesco")
                     ));
@@ -83,18 +93,27 @@ public class FamiliarDAO {
         }
     }
 
+
     public List<ComboFamiliar> listarNoAsignados(int residenteId) throws Exception {
-        String sql = """
-            SELECT f.id, f.nombre, f.usuario, f.email
+    String sql = """
+            SELECT 
+                f.id,
+                f.nombre,
+                u.username AS usuario,              -- ← de usuarios
+                f.email
             FROM familiares f
+            LEFT JOIN usuarios u
+                ON u.familiar_id = f.id
+                AND u.rol = 'FAMILIAR'
+                AND u.activo = 1
             WHERE NOT EXISTS (
                 SELECT 1 FROM residente_familiar rf
-                 WHERE rf.residente_id = ? AND rf.familiar_id = f.id
+                WHERE rf.residente_id = ? AND rf.familiar_id = f.id
             )
             ORDER BY f.nombre
         """;
         try (Connection c = ConexionBD.obtener();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+            PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, residenteId);
             try (ResultSet rs = ps.executeQuery()) {
                 List<ComboFamiliar> out = new ArrayList<>();
@@ -111,69 +130,7 @@ public class FamiliarDAO {
         }
     }
 
-    public int crearFamiliar(String nombre, String usuario, String passwordHash, String email) throws Exception {
-        String sql = "INSERT INTO familiares (nombre, usuario, password_hash, email) VALUES (?,?,?,?)";
-        try (Connection c = ConexionBD.obtener();
-             PreparedStatement ps = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, nombre);
-            ps.setString(2, usuario);
-            ps.setString(3, passwordHash);
-            ps.setString(4, email);
-            ps.executeUpdate();
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) return rs.getInt(1);
-                throw new SQLException("No se pudo obtener el id del familiar creado");
-            }
-        }
-    }
-
-    public void insertarAsignacion(int residenteId, int familiarId, String parentesco) throws Exception {
-        String sql = "INSERT INTO residente_familiar (residente_id, familiar_id, parentesco) VALUES (?,?,?)";
-        try (Connection c = ConexionBD.obtener();
-             PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setInt(1, residenteId);
-            ps.setInt(2, familiarId);
-            ps.setString(3, parentesco);
-            ps.executeUpdate();
-        }
-    }
-
-    public void actualizarAsignado(int idRelacion, int idFamiliar,
-                                   String nombre, String usuario, String email, String parentesco) throws Exception {
-        try (Connection c = ConexionBD.obtener()) {
-            c.setAutoCommit(false);
-            try {
-                // familiares
-                try (PreparedStatement ps = c.prepareStatement("""
-                        UPDATE familiares
-                           SET nombre = ?, usuario = ?, email = ?
-                         WHERE id = ?
-                    """)) {
-                    ps.setString(1, nombre);
-                    ps.setString(2, usuario);
-                    ps.setString(3, email);
-                    ps.setInt(4, idFamiliar);
-                    ps.executeUpdate();
-                }
-                // relación
-                try (PreparedStatement ps = c.prepareStatement("""
-                        UPDATE residente_familiar
-                           SET parentesco = ?
-                         WHERE id = ?
-                    """)) {
-                    ps.setString(1, parentesco);
-                    ps.setInt(2, idRelacion);
-                    ps.executeUpdate();
-                }
-                c.commit();
-            } catch (Exception e) {
-                c.rollback();
-                throw e;
-            } finally {
-                c.setAutoCommit(true);
-            }
-        }
-    }
+    
 
     public void borrarAsignacion(int idRelacion) throws Exception {
         try (Connection c = ConexionBD.obtener();
@@ -183,47 +140,194 @@ public class FamiliarDAO {
         }
     }
 
-    
-    public List<Familiar> listar(String filtro) throws Exception {
-        String sql = "SELECT id, nombre, usuario, email FROM familiares";
-        if (filtro != null && !filtro.isBlank()) {
-            sql += " WHERE nombre LIKE ?";
-        }
-        sql += " ORDER BY nombre";
+public void insertarAsignacion(int residenteId, int familiarId, String parentesco) throws Exception {
+    String sql = "INSERT INTO residente_familiar (residente_id, familiar_id, parentesco) VALUES (?,?,?)";
+    try (Connection c = ConexionBD.obtener();
+         PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setInt(1, residenteId);
+        ps.setInt(2, familiarId);
+        ps.setString(3, parentesco);
+        ps.executeUpdate();
+    }
+}
 
-        try (Connection c = ConexionBD.obtener();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+public void insertarAsignacion(Integer residenteId, int familiarId, String parentesco) throws Exception {
+    insertarAsignacion(residenteId.intValue(), familiarId, parentesco);
+}
 
-            if (filtro != null && !filtro.isBlank()) {
-                ps.setString(1, "%" + filtro + "%");
+
+public int crearFamiliar(String nombre, String usuario, String passwordHash, String email) throws Exception {
+    try (Connection c = ConexionBD.obtener()) {
+        c.setAutoCommit(false);
+        try {
+            if (existeUsernameEnUsuarios(usuario) || existeUsuarioEnFamiliares(usuario)) {
+                throw new SQLException("El usuario ya existe");
             }
 
-            try (ResultSet rs = ps.executeQuery()) {
-                List<Familiar> out = new ArrayList<>();
-                while (rs.next()) {
-                    out.add(new Familiar(
-                        rs.getInt("id"),
-                        rs.getString("nombre"),
-                        rs.getString("usuario"),
-                        rs.getString("email")
-                    ));
+            int familiarId;
+
+            // Insert en 'familiares'
+            try (PreparedStatement ps = c.prepareStatement(
+                    "INSERT INTO familiares (nombre, usuario, password_hash, email) VALUES (?,?,?,?)",
+                    Statement.RETURN_GENERATED_KEYS)) {
+
+                ps.setString(1, nombre);
+                ps.setString(2, usuario);
+                ps.setString(3, passwordHash);
+                ps.setString(4, (email == null || email.isBlank()) ? null : email);
+
+                int n = ps.executeUpdate();
+                if (n != 1) throw new SQLException("No se insertó el familiar (n=" + n + ")");
+
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (!rs.next()) throw new SQLException("No se pudo obtener el id del familiar creado");
+                    familiarId = rs.getInt(1);
                 }
-                return out;
             }
-        }
-    }
 
-    public void insertar(Familiar familiar) throws Exception {
-        String sql = "INSERT INTO familiares (nombre, usuario, email, password_hash) VALUES (?, ?, ?, ?)";
-        try (Connection c = ConexionBD.obtener();
-             PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setString(1, familiar.getNombre());
-            ps.setString(2, familiar.getUsuario());
-            ps.setString(3, familiar.getEmail());
-            ps.setString(4, familiar.getPasswordHashTemporal()); // debe venir preparado por el controlador
-            ps.executeUpdate();
+            // Insert en 'usuarios'
+            try (PreparedStatement ps = c.prepareStatement(
+                    "INSERT INTO usuarios (username, password_hash, rol, familiar_id, activo, created_at) " +
+                    "VALUES (?,?,?,?,1, datetime('now'))")) {
+
+                ps.setString(1, usuario);
+                ps.setString(2, passwordHash);
+                ps.setString(3, "FAMILIAR");
+                ps.setInt(4, familiarId);
+
+                int n = ps.executeUpdate();
+                if (n != 1) throw new SQLException("No se insertó el usuario (n=" + n + ")");
+            }
+
+            c.commit();
+            return familiarId;
+
+        } catch (Exception e) {
+            c.rollback();
+            throw e;
+        } finally {
+            c.setAutoCommit(true);
         }
     }
+}
+
+public boolean existeUsernameEnUsuarios(String username) throws SQLException {
+    String sql = "SELECT 1 FROM usuarios WHERE LOWER(username)=LOWER(?) LIMIT 1";
+    try (Connection c = ConexionBD.obtener();
+         PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setString(1, username);
+        try (ResultSet rs = ps.executeQuery()) {
+            return rs.next();
+        }
+    }
+}
+
+public boolean existeUsuarioEnFamiliares(String usuario) throws SQLException {
+    String sql = "SELECT 1 FROM familiares WHERE LOWER(usuario)=LOWER(?) LIMIT 1";
+    try (Connection c = ConexionBD.obtener();
+         PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setString(1, usuario);
+        try (ResultSet rs = ps.executeQuery()) {
+            return rs.next();
+        }
+    }
+}
+
+
+public void actualizarAsignado(int idRelacion, int idFamiliar,
+                               String nombre, String usuario, String email, String parentesco) throws Exception {
+    try (Connection c = ConexionBD.obtener()) {
+        c.setAutoCommit(false);
+        try {
+            try (PreparedStatement ps = c.prepareStatement("""
+                    UPDATE familiares
+                       SET nombre = ?, email = ?
+                     WHERE id = ?
+                """)) {
+                ps.setString(1, nombre);
+                ps.setString(2, email);
+                ps.setInt(3, idFamiliar);
+                ps.executeUpdate();
+            }
+
+            // relación: parentesco
+            try (PreparedStatement ps = c.prepareStatement("""
+                    UPDATE residente_familiar
+                       SET parentesco = ?
+                     WHERE id = ?
+                """)) {
+                ps.setString(1, parentesco);
+                ps.setInt(2, idRelacion);
+                ps.executeUpdate();
+            }
+
+           
+            try (PreparedStatement ps = c.prepareStatement(
+               "UPDATE usuarios SET username = ? WHERE familiar_id = ? AND rol = 'FAMILIAR'")) {
+               ps.setString(1, usuario);
+               ps.setInt(2, idFamiliar);
+              ps.executeUpdate();
+             }
+
+            c.commit();
+        } catch (Exception e) {
+            c.rollback();
+            throw e;
+        } finally {
+            c.setAutoCommit(true);
+        }
+    }
+}
+
+    public List<Familiar> listar(String filtro) throws Exception {
+    String base = """
+        SELECT 
+            f.id,
+            f.nombre,
+            u.username AS usuario,
+            f.email
+        FROM familiares f
+        LEFT JOIN usuarios u
+               ON u.familiar_id = f.id
+              AND u.rol = 'FAMILIAR'
+              AND u.activo = 1
+    """;
+
+    String sql = base + (filtro != null && !filtro.isBlank()
+            ? " WHERE f.nombre LIKE ? ORDER BY f.nombre"
+            : " ORDER BY f.nombre");
+
+    try (Connection c = ConexionBD.obtener();
+         PreparedStatement ps = c.prepareStatement(sql)) {
+
+        if (filtro != null && !filtro.isBlank()) {
+            ps.setString(1, "%" + filtro + "%");
+        }
+
+        try (ResultSet rs = ps.executeQuery()) {
+            List<Familiar> out = new ArrayList<>();
+            while (rs.next()) {
+                out.add(new Familiar(
+                    rs.getInt("id"),
+                    rs.getString("nombre"),
+                    rs.getString("usuario"),
+                    rs.getString("email")
+                ));
+            }
+            return out;
+        }
+    }
+}
+
+    
+    public void insertar(Familiar familiar) throws Exception {
+    crearFamiliar(
+        familiar.getNombre(),
+        familiar.getUsuario(),
+        familiar.getPasswordHashTemporal(), 
+        familiar.getEmail()
+    );
+}
 
     public void actualizarBasico(Familiar familiar) throws Exception {
         String sql = "UPDATE familiares SET nombre = ?, email = ? WHERE id = ?";
@@ -237,13 +341,41 @@ public class FamiliarDAO {
     }
 
     public void eliminar(Integer id) throws Exception {
-        String sql = "DELETE FROM familiares WHERE id = ?";
-        try (Connection c = ConexionBD.obtener();
-             PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            ps.executeUpdate();
+    try (Connection c = ConexionBD.obtener()) {
+        c.setAutoCommit(false);
+        try {
+            // 1) Desvincular relaciones con residentes
+            try (PreparedStatement ps = c.prepareStatement(
+                    "DELETE FROM residente_familiar WHERE familiar_id = ?")) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
+
+            // 2) Borrar su cuenta de usuario (rol FAMILIAR)
+            try (PreparedStatement ps = c.prepareStatement(
+                    "DELETE FROM usuarios WHERE familiar_id = ? AND rol = 'FAMILIAR'")) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
+
+            // 3) Borrar el familiar
+            try (PreparedStatement ps = c.prepareStatement(
+                    "DELETE FROM familiares WHERE id = ?")) {
+                ps.setInt(1, id);
+                int n = ps.executeUpdate();
+                if (n != 1) throw new SQLException("No se encontró el familiar (id=" + id + ")");
+            }
+
+            c.commit();
+        } catch (Exception e) {
+            c.rollback();
+            throw e;
+        } finally {
+            c.setAutoCommit(true);
         }
     }
+}
+
 
     
     private static final String SELECT_PANEL_FAMILIAR_BASE = """
@@ -494,4 +626,12 @@ public class FamiliarDAO {
         int v = rs.getInt(col);
         return rs.wasNull() ? null : v;
     }
+    public void actualizarPasswordFamiliar(int idFamiliar, String nuevoHash) throws Exception {
+    String sql = "UPDATE usuarios SET password_hash=? WHERE familiar_id=? AND rol='FAMILIAR'";
+    try (Connection c = ConexionBD.obtener(); PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setString(1, nuevoHash);
+        ps.setInt(2, idFamiliar);
+        ps.executeUpdate();
+    }
+}
 }

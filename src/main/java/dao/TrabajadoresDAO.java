@@ -10,69 +10,139 @@ import java.util.*;
 public class TrabajadoresDAO {
 
     public List<Trabajador> listar(String filtro) throws Exception {
-        List<Trabajador> out = new ArrayList<>();
-        String sql = "SELECT id, nombre, usuario, email, activo " +
-                     "FROM trabajadores " +
-                     (filtro == null || filtro.isBlank()
-                        ? ""
-                        : "WHERE nombre LIKE ? OR usuario LIKE ? OR email LIKE ? ") +
-                     "ORDER BY nombre, usuario";
+    List<Trabajador> out = new ArrayList<>();
 
-        try (Connection c = ConexionBD.obtener();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+    String base = """
+        SELECT
+            t.id,
+            t.nombre,
+            u.username AS usuario,   -- ← de usuarios
+            t.email,
+            t.activo
+        FROM trabajadores t
+        LEFT JOIN usuarios u
+               ON u.trabajador_id = t.id
+              AND u.rol = 'TRABAJADOR'
+              AND u.activo = 1
+    """;
 
-            if (sql.contains("LIKE")) {
-                String like = "%" + filtro + "%";
-                ps.setString(1, like); ps.setString(2, like); ps.setString(3, like);
-            }
+    String sql = base + (
+        (filtro == null || filtro.isBlank())
+        ? " ORDER BY t.nombre, usuario"
+        : " WHERE t.nombre LIKE ? OR u.username LIKE ? OR t.email LIKE ? ORDER BY t.nombre, usuario"
+    );
 
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    out.add(new Trabajador(
-                        rs.getInt("id"),
-                        rs.getString("nombre"),
-                        rs.getString("usuario"),
-                        rs.getString("email"),
-                        rs.getInt("activo") == 1
-                    ));
-                }
+    try (Connection c = ConexionBD.obtener();
+         PreparedStatement ps = c.prepareStatement(sql)) {
+
+        if (!(filtro == null || filtro.isBlank())) {
+            String like = "%" + filtro + "%";
+            ps.setString(1, like); ps.setString(2, like); ps.setString(3, like);
+        }
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                out.add(new Trabajador(
+                    rs.getInt("id"),
+                    rs.getString("nombre"),
+                    rs.getString("usuario"),
+                    rs.getString("email"),
+                    rs.getInt("activo") == 1
+                ));
             }
         }
-        return out;
     }
+    return out;
+}
+
 
     public void insertar(Trabajador t) throws Exception {
-        String sql = "INSERT INTO trabajadores (nombre, usuario, password_hash, email, activo) VALUES (?,?,?,?,?)";
-        try (Connection c = ConexionBD.obtener(); PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setString(1, t.getNombre());
-            ps.setString(2, t.getUsuario());
-            ps.setString(3, t.getPasswordHashTemporal()); 
-            ps.setString(4, t.getEmail());
-            ps.setInt(5, Boolean.TRUE.equals(t.getActivo()) ? 1 : 0);
-            ps.executeUpdate();
+    try (Connection c = ConexionBD.obtener()) {
+        c.setAutoCommit(false);
+        try {
+            // 1) trabajadores: incluye USUARIO para cumplir NOT NULL
+            int trabajadorId;
+            try (PreparedStatement ps = c.prepareStatement(
+                    "INSERT INTO trabajadores (nombre, usuario, email, activo) VALUES (?,?,?,?)",
+                    Statement.RETURN_GENERATED_KEYS)) {
+                ps.setString(1, t.getNombre());
+                ps.setString(2, t.getUsuario());   // ← rellenamos la columna legacy
+                ps.setString(3, t.getEmail());
+                ps.setInt(4, Boolean.TRUE.equals(t.getActivo()) ? 1 : 0);
+                ps.executeUpdate();
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (!rs.next()) throw new SQLException("No se pudo obtener id de trabajador");
+                    trabajadorId = rs.getInt(1);
+                }
+            }
+
+            // 2) usuarios: fuente de verdad
+            try (PreparedStatement ps = c.prepareStatement(
+                    "INSERT INTO usuarios (username, password_hash, rol, trabajador_id, activo, created_at) " +
+                    "VALUES (?,?,?,?,?, datetime('now'))")) {
+                ps.setString(1, t.getUsuario());
+                ps.setString(2, t.getPasswordHashTemporal());
+                ps.setString(3, "TRABAJADOR");
+                ps.setInt(4, trabajadorId);
+                ps.setInt(5, Boolean.TRUE.equals(t.getActivo()) ? 1 : 0);
+                ps.executeUpdate();
+            }
+
+            c.commit();
+        } catch (Exception e) {
+            c.rollback();
+            throw e;
+        } finally {
+            c.setAutoCommit(true);
         }
     }
+}
+
 
     public void actualizar(Trabajador t) throws Exception {
-        String sql = "UPDATE trabajadores SET nombre=?, usuario=?, email=?, activo=? WHERE id=?";
-        try (Connection c = ConexionBD.obtener(); PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setString(1, t.getNombre());
-            ps.setString(2, t.getUsuario());
-            ps.setString(3, t.getEmail());
-            ps.setInt(4, Boolean.TRUE.equals(t.getActivo()) ? 1 : 0);
-            ps.setInt(5, t.getId());
-            ps.executeUpdate();
-        }
-    }
+    try (Connection c = ConexionBD.obtener()) {
+        c.setAutoCommit(false);
+        try {
+            // trabajadores (incluye usuario por el NOT NULL)
+            try (PreparedStatement ps = c.prepareStatement(
+                    "UPDATE trabajadores SET nombre=?, usuario=?, email=?, activo=? WHERE id=?")) {
+                ps.setString(1, t.getNombre());
+                ps.setString(2, t.getUsuario()); // ← mantener legacy sincronizado
+                ps.setString(3, t.getEmail());
+                ps.setInt(4, Boolean.TRUE.equals(t.getActivo()) ? 1 : 0);
+                ps.setInt(5, t.getId());
+                ps.executeUpdate();
+            }
 
-    public void actualizarPassword(int idTrabajador, String nuevoHash) throws Exception {
-        String sql = "UPDATE trabajadores SET password_hash=? WHERE id=?";
-        try (Connection c = ConexionBD.obtener(); PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setString(1, nuevoHash);
-            ps.setInt(2, idTrabajador);
-            ps.executeUpdate();
+            // usuarios (fuente de verdad)
+            try (PreparedStatement ps = c.prepareStatement(
+                    "UPDATE usuarios SET username=?, activo=? WHERE trabajador_id=? AND rol='TRABAJADOR'")) {
+                ps.setString(1, t.getUsuario());
+                ps.setInt(2, Boolean.TRUE.equals(t.getActivo()) ? 1 : 0);
+                ps.setInt(3, t.getId());
+                ps.executeUpdate();
+            }
+
+            c.commit();
+        } catch (Exception e) {
+            c.rollback();
+            throw e;
+        } finally {
+            c.setAutoCommit(true);
         }
     }
+}
+
+
+
+   public void actualizarPassword(int idTrabajador, String nuevoHash) throws Exception {
+    String sql = "UPDATE usuarios SET password_hash=? WHERE trabajador_id=? AND rol='TRABAJADOR'";
+    try (Connection c = ConexionBD.obtener(); PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setString(1, nuevoHash);
+        ps.setInt(2, idTrabajador);
+        ps.executeUpdate();
+    }
+}
 
     public void eliminar(int id) throws Exception {
         try (Connection c = ConexionBD.obtener();
@@ -82,29 +152,38 @@ public class TrabajadoresDAO {
         }
     }
 
-    public java.util.List<modelo.Trabajador> listarActivosExcepto(int idExcluir) throws Exception {
-        String sql = "SELECT id, nombre, usuario, email, activo " +
-                     "FROM trabajadores " +
-                     "WHERE activo = 1 AND id <> ? " +
-                     "ORDER BY nombre";
-        java.util.List<modelo.Trabajador> out = new java.util.ArrayList<>();
-        try (java.sql.Connection c = bd.ConexionBD.obtener();
-             java.sql.PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setInt(1, idExcluir);
-            try (java.sql.ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    out.add(new modelo.Trabajador(
-                            rs.getInt("id"),
-                            rs.getString("nombre"),
-                            rs.getString("usuario"),
-                            rs.getString("email"),
-                            rs.getInt("activo") == 1
-                    ));
-                }
+    public List<Trabajador> listarActivosExcepto(int idExcluir) throws Exception {
+    String sql = """
+        SELECT
+            t.id, t.nombre,
+            u.username AS usuario,
+            t.email, t.activo
+        FROM trabajadores t
+        LEFT JOIN usuarios u
+               ON u.trabajador_id = t.id
+              AND u.rol = 'TRABAJADOR'
+              AND u.activo = 1
+        WHERE t.activo = 1 AND t.id <> ?
+        ORDER BY t.nombre
+    """;
+    List<Trabajador> out = new ArrayList<>();
+    try (Connection c = ConexionBD.obtener(); PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setInt(1, idExcluir);
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                out.add(new Trabajador(
+                    rs.getInt("id"),
+                    rs.getString("nombre"),
+                    rs.getString("usuario"),
+                    rs.getString("email"),
+                    rs.getInt("activo") == 1
+                ));
             }
         }
-        return out;
     }
+    return out;
+}
+
 
     
     public List<TrabajadorResumenFila> listarAsignados(int trabajadorId, String filtro) throws Exception {
