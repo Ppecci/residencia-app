@@ -2,13 +2,15 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?> 
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="es.tfg.residencias.ui.admin.PanelAdminControlador">
     <left>
         <VBox spacing="8" style="-fx-background-color: #1f3724ff;" prefWidth="220">
             <children>
-                <Label text="Residencia Los Sauces" style="-fx-text-fill: white; -fx-font-size: 16; -fx-padding: 16 12 16 12;" />
+                <ImageView fx:id="logoImagen" fitHeight="160" preserveRatio="true" pickOnBounds="true"/>
+                <Label text="Residencia Los Sauces" styleClass="titulo-residencia" />
                 <Button text="Residentes" fx:id="btnResidentes" onAction="#abrirResidentes" prefWidth="200"/>
                 <Button text="Trabajadores" onAction="#abrirEmpleados" prefWidth="200"/>
                 <Button text="Familiares" onAction="#abrirFamiliares" prefWidth="200"/>

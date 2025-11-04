@@ -10,9 +10,18 @@
     -app-secundary: #1f3724ff;
 }
 
+.titulo-residencia {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-padding: 16 12 16 12;
+}
 
 .label {
     -fx-text-fill: -app-text;
+}
+.label.titulo-residencia {
+    -fx-text-fill: white;
 }
 
 .title {
