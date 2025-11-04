@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import modelo.TrabajadorResumenFila;
+import javafx.scene.image.ImageView; 
 
 import java.util.List;
 
@@ -30,6 +31,8 @@ public class PanelTrabajadorControlador {
 
     private Integer trabajadorId;        
     private String  nombreTrabajador;    
+    @FXML private ImageView logoImagen;
+
 
     @FXML
     public void initialize() {
@@ -65,6 +68,15 @@ public class PanelTrabajadorControlador {
         if (trabajadorId != null) {
             refrescar();
         }
+            var url = getClass().getResource("/img/logo-png.png"); // usa el nombre real del archivo
+    if (url != null) {
+        logoImagen.setImage(new javafx.scene.image.Image(url.toExternalForm(), true));
+        logoImagen.setFitHeight(100);     // ajusta tamaño a tu gusto
+        logoImagen.setPreserveRatio(true);
+        logoImagen.setSmooth(false);      // más nítido al escalar
+    } else {
+        System.err.println("[DIAG] No se encontró /img/logo-png.png");
+    }
     }
 
 

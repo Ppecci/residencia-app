@@ -2,27 +2,34 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="es.tfg.residencias.ui.trabajador.PanelTrabajadorControlador">
 
-    <!-- Barra superior -->
-    <top>
-        <ToolBar>
-            <Label fx:id="lblTitulo" text="Trabajador: —" />
-            <Pane HBox.hgrow="ALWAYS"/>
-            <TextField fx:id="txtBuscar" promptText="Buscar por nombre/apellidos/nº habitación" prefWidth="320"/>
-            <Button text="Buscar"    onAction="#buscar"/>
-            <Button text="Refrescar" onAction="#refrescar"/>
-            <Separator/>
-            <Button fx:id="btnEditarPrescripciones" text="Editar prescripciones" onAction="#editarPrescripciones"/>
-            <Button fx:id="btnEditarDieta"          text="Editar dieta"          onAction="#editarDieta"/>
-            <Button fx:id="btnCitas"                 text="Citas médicas"         onAction="#gestionarCitas"/>
-            <Separator/>
-            <Button text="Cerrar sesión" onAction="#cerrarSesion"/>
-        </ToolBar>
-    </top>
+<top>
+    <VBox alignment="CENTER" spacing="8" style="-fx-padding: 8 8 0 8;">
+        <children>
+            <!-- Logo (la imagen se carga en el controlador) -->
+            <ImageView fx:id="logoImagen" fitHeight="100" preserveRatio="true" pickOnBounds="true"/>
+
+            <ToolBar>
+                <Label fx:id="lblTitulo" text="Trabajador: —" />
+                <Pane HBox.hgrow="ALWAYS"/>
+                <TextField fx:id="txtBuscar" promptText="Buscar por nombre/apellidos/nº habitación" prefWidth="320"/>
+                <Button text="Buscar"    onAction="#buscar"/>
+                <Button text="Refrescar" onAction="#refrescar"/>
+                <Separator/>
+                <Button fx:id="btnEditarPrescripciones" text="Editar prescripciones" onAction="#editarPrescripciones"/>
+                <Button fx:id="btnEditarDieta"          text="Editar dieta"          onAction="#editarDieta"/>
+                <Button fx:id="btnCitas"                 text="Citas médicas"         onAction="#gestionarCitas"/>
+                <Separator/>
+                <Button text="Cerrar sesión" onAction="#cerrarSesion"/>
+            </ToolBar>
+        </children>
+    </VBox>
+</top>
 
     <!-- Tabla central -->
     <center>
