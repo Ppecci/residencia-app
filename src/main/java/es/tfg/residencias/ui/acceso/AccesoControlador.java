@@ -12,6 +12,7 @@ import javafx.scene.control.*;
 import modelo.Usuario;
 import sesion.Sesion;
 import org.mindrot.jbcrypt.BCrypt;
+import javafx.scene.image.ImageView;
 
 public class AccesoControlador {
 
@@ -21,6 +22,24 @@ public class AccesoControlador {
     @FXML private Label errorEtiqueta;
 
     private final UsuariosDAO usuariosDAO = new UsuariosDAO();
+    @FXML private ImageView logoImagen;
+
+@FXML
+public void initialize() {
+    try {
+        var url = getClass().getResource("/img/logo-png.png"); // exacto: carpeta y nombre
+        if (url == null) {
+            System.err.println("[DIAG] No se encuentra recurso: /img/logo2.png (classPath)");
+        } else {
+            logoImagen.setImage(new javafx.scene.image.Image(url.toExternalForm(), true));
+            System.out.println("[DIAG] Logo cargado desde: " + url);
+        }
+    } catch (Throwable t) {
+        System.err.println("[DIAG] Error cargando logo:");
+        t.printStackTrace();
+    }
+}
+
 
     @FXML
             private void alAcceder() {
