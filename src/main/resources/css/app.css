@@ -82,6 +82,7 @@
 .table-row-cell:odd {
     -fx-background-color: derive(-app-muted, 90%); 
 }
+}
 
 
 .table-row-cell:hover {

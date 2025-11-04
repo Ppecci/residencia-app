@@ -45,6 +45,8 @@ public class PanelFamiliarControlador {
 
     private final ObservableList<FilaResumenFamiliar> datos = FXCollections.observableArrayList();
     private final DateTimeFormatter horaFmt = DateTimeFormatter.ofPattern("HH:mm:ss");
+    @FXML private javafx.scene.image.ImageView logoImagen;
+
 
     @FXML
     public void initialize() {
@@ -72,6 +74,20 @@ public class PanelFamiliarControlador {
         tabla.setItems(datos);
 
         cargarTabla(null);
+            try {
+            var url = getClass().getResource("/img/logo-png.png"); // o el nombre real de tu logo
+            if (url != null) {
+                logoImagen.setImage(new javafx.scene.image.Image(url.toExternalForm(), true));
+                logoImagen.setFitHeight(100);
+                logoImagen.setPreserveRatio(true);
+                logoImagen.setSmooth(false); // para que no se vea borroso
+            } else {
+                System.err.println("[DIAG] No se encontró /img/logo-png.png");
+            }
+        } catch (Throwable t) {
+            System.err.println("[DIAG] Error cargando logo en PanelFamiliar:");
+            t.printStackTrace();
+        }
     }
 
     @FXML

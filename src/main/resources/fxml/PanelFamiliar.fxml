@@ -9,27 +9,36 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.VBox?>
+
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="es.tfg.residencias.ui.familiar.PanelFamiliarControlador"
             prefWidth="1000" prefHeight="600">
 
     <top>
-        <ToolBar>
-            <items>
-                <Label text="Familiar:"/>
-                <Label fx:id="lblFamiliar" style="-fx-font-weight: bold;"/>
-                <Separator/>
-                <Label text="Residente:"/>
-                <Label fx:id="lblResidente" style="-fx-font-weight: bold;"/>
-                <Separator/>
-                <TextField fx:id="txtBuscar" promptText="Buscar (nombre, apellidos, nº hab.)"/>
-                <Button text="Buscar"   onAction="#buscar"/>
-                <Button text="Refrescar" onAction="#refrescar"/>
-                <Separator/>
-                <Button fx:id="btnCerrarSesion" text="Cerrar sesión" onAction="#cerrarSesion"/>
-            </items>
-        </ToolBar>
+        <VBox alignment="CENTER" spacing="8" style="-fx-padding: 10 10 0 10;">
+            <children>
+                <ImageView fx:id="logoImagen" fitHeight="100" preserveRatio="true" pickOnBounds="true"/>
+
+                <ToolBar>
+                    <items>
+                        <Label text="Familiar:"/>
+                        <Label fx:id="lblFamiliar" style="-fx-font-weight: bold;"/>
+                        <Separator/>
+                        <Label text="Residente:"/>
+                        <Label fx:id="lblResidente" style="-fx-font-weight: bold;"/>
+                        <Separator/>
+                        <TextField fx:id="txtBuscar" promptText="Buscar (nombre, apellidos, nº hab.)"/>
+                        <Button text="Buscar"   onAction="#buscar"/>
+                        <Button text="Refrescar" onAction="#refrescar"/>
+                        <Separator/>
+                        <Button fx:id="btnCerrarSesion" text="Cerrar sesión" onAction="#cerrarSesion"/>
+                    </items>
+                </ToolBar>
+            </children>
+        </VBox>
     </top>
 
     <center>
