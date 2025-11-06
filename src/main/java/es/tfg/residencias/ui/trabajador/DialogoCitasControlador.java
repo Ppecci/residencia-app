@@ -27,6 +27,7 @@ public class DialogoCitasControlador {
     private final javafx.collections.ObservableList<CitaMedica> items =
             javafx.collections.FXCollections.observableArrayList();
     private int residenteId;
+    private Integer editandoId = null;
 
     @FXML
     public void initialize() {
@@ -70,28 +71,35 @@ public class DialogoCitasControlador {
 
     @FXML
     private void editar() {
-        var sel = tabla.getSelectionModel().getSelectedItem();
-        if (sel == null) { info("Selecciona una cita."); return; }
+    var sel = tabla.getSelectionModel().getSelectedItem();
+    if (sel == null) { info("Selecciona una cita."); return; }
 
+    if (editandoId == null || !sel.id.equals(editandoId)) {
         inFecha.setValue(sel.fechaHora.toLocalDate());
         inHora.setText(String.format("%02d:%02d", sel.fechaHora.getHour(), sel.fechaHora.getMinute()));
         inEspecialidad.setText(nvl(sel.especialidad));
         inLugar.setText(nvl(sel.lugar));
         cbEstado.getSelectionModel().select(sel.estado);
         inNotas.setText(nvl(sel.notas));
-
-        var mod = leerFormulario(sel.id);
-        if (mod == null) return;
-
-        try {
-            dao.actualizar(mod);
-            limpiarFormulario();
-            recargar();
-            info("Cita actualizada.");
-        } catch (Exception e) {
-            error("No se pudo actualizar", e.getMessage());
-        }
+        editandoId = sel.id;
+        info("Modifica los campos y vuelve a pulsar Editar para guardar.");
+        return;
     }
+
+    var mod = leerFormulario(editandoId);
+    if (mod == null) return;
+
+    try {
+        dao.actualizar(mod);              
+        editandoId = null;                
+        limpiarFormulario();
+        recargar();
+        info("Cita actualizada.");
+    } catch (Exception e) {
+        error("No se pudo actualizar", e.getMessage());
+    }
+}
+
 
     @FXML
     private void eliminar() {

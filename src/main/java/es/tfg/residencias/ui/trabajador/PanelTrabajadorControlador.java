@@ -250,10 +250,9 @@ private void editarPrescripciones() {
             alerta.setHeaderText("Cerrar sesión");
             alerta.setTitle("Confirmar");
 
-            // 👇 APLICAR TU CSS AL ALERT
             Navegacion.aplicarCss(alerta);
 
-            java.util.Optional<javafx.scene.control.ButtonType> resultado = alerta.showAndWait();
+            var resultado = alerta.showAndWait();
             if (resultado.isEmpty() || resultado.get() != javafx.scene.control.ButtonType.YES) {
                 return;
             }
@@ -263,31 +262,14 @@ private void editarPrescripciones() {
                 nombreTrabajador = null;
                 datos.clear();
 
-                java.net.URL url = getClass().getResource("/fxml/AccesoVista.fxml");
-                if (url == null) {
-                    error("FXML no encontrado", "/fxml/AccesoVista.fxml");
-                    return;
-                }
-
-                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(url);
-                javafx.scene.Parent root = loader.load();
-
-                javafx.stage.Stage stage = (javafx.stage.Stage)
-                        ((javafx.scene.Node) e.getSource()).getScene().getWindow();
-
-                // 👇 AÑADIR CSS A LA NUEVA ESCENA (ventana de acceso)
-                javafx.scene.Scene scene = new javafx.scene.Scene(root);
-                scene.getStylesheets().add(Navegacion.appCss());
-                stage.setScene(scene);
-
-                stage.setTitle("Acceso al sistema");
-                stage.show();
+                Navegacion.cambiar("/fxml/AccesoVista.fxml");
 
             } catch (Exception ex) {
                 error("No se pudo volver al login",
                     ex.getClass().getSimpleName() + ": " + ex.getMessage());
             }
         }
+
 
     private void info(String msg) {
         Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
