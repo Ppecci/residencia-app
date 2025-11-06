@@ -135,6 +135,30 @@
                         </VBox>
                     </content>
                     </Tab>
+                    <Tab fx:id="tabTrabajadores" text="Trabajadores" closable="false">
+                        <content>
+                            <VBox spacing="10" styleClass="section" prefWidth="800">
+                            <!-- Barra de acciones -->
+                            <HBox spacing="8">
+                                <Button fx:id="btnAsignarTrab"  text="Asignar Trabajador"    onAction="#asignarTrabajador"/>
+                                <Button fx:id="btnCerrarTrab"   text="Eliminar Asignación"     onAction="#cerrarAsignacionTrab"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <CheckBox fx:id="chkSoloVigentesTrab" text="Solo vigentes" selected="true"
+                                        onAction="#toggleVigentesTrab"/>
+                            </HBox>
+
+                            <TableView fx:id="tablaCuidadores" prefHeight="360">
+                                <columns>
+                                <TableColumn fx:id="colTrabajador" text="Trabajador" prefWidth="220"/>
+                                <TableColumn fx:id="colUsuario"    text="Usuario"    prefWidth="160"/>
+                                <TableColumn fx:id="colDesde"      text="Desde"      prefWidth="120"/>
+                                <TableColumn fx:id="colHasta"      text="Hasta"      prefWidth="120"/>
+                                <TableColumn fx:id="colNotas"      text="Notas"      prefWidth="240"/>
+                                </columns>
+                            </TableView>
+                            </VBox>
+                        </content>
+                        </Tab>
             </tabs>
         </TabPane>
     </center>

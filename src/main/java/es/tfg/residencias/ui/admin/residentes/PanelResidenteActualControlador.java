@@ -9,10 +9,15 @@ import javafx.scene.layout.GridPane;
 import javafx.geometry.Insets;
 import modelo.Residente;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.time.LocalDate;
+import java.sql.Types;
 
 import org.mindrot.jbcrypt.BCrypt;
 
+import bd.ConexionBD;
 import dao.HabitacionDAO;
 import dao.PrescripcionDAO;
 import es.tfg.residencias.ui.util.Navegacion;
@@ -36,19 +41,21 @@ public class PanelResidenteActualControlador {
         if (lblTitulo != null && r != null) {
             lblTitulo.setText("Detalle: " + r.getNombre() + " " + r.getApellidos());
         }
-        // Nada más recibir el residente, cargamos la pestaña Habitación
         cargarHabitacion();
         cargarHistorico();
         cargarPrescripciones();
         cargarDieta();
         cargarHistoricoDieta();
         cargarFamilia();
-        
+        this.residenteId = (r != null ? r.getId() : 0);
+        initializeTrabajadoresTab();
+        cargarCuidadores();
+    
     }
 
     private void cargarHabitacion() {
         if (residente == null) return;
-        // valores por defecto
+        
         setHabLabels("—", "—", "—", "—");
         try {
             var opt = habitacionDAO.obtenerHabitacionVigente(residente.getId());
@@ -62,7 +69,6 @@ public class PanelResidenteActualControlador {
                 );
             }
         } catch (Exception e) {
-            // si hay error, mostramos algo legible
             setHabLabels("Error", "Error", "Error", e.getMessage());
             e.printStackTrace();
         }
@@ -702,6 +708,270 @@ private void borrarFamiliar() {
         e.printStackTrace();
         new Alert(Alert.AlertType.ERROR, "Error al desasignar:\n" + e.getMessage()).showAndWait();
     }
+}
+
+@FXML private Tab tabTrabajadores;
+@FXML private Button btnAsignarTrab, btnCerrarTrab;
+@FXML private CheckBox chkSoloVigentesTrab;
+@FXML private TableView<CuidadorFila> tablaCuidadores;
+@FXML private TableColumn<CuidadorFila, String> colTrabajador, colUsuario, colDesde, colHasta, colNotas;
+
+
+private int residenteId;
+
+
+public static class CuidadorFila {
+    private final Integer idAsignacion; 
+    private final String trabajador;
+    private final String usuario;
+    private final String desde;
+    private final String hasta;
+    private final String notas;
+
+    public CuidadorFila(Integer idAsignacion, String trabajador, String usuario,
+                        String desde, String hasta, String notas) {
+        this.idAsignacion = idAsignacion;
+        this.trabajador = trabajador;
+        this.usuario = usuario;
+        this.desde = desde;
+        this.hasta = hasta;
+        this.notas = notas;
+    }
+    public Integer getIdAsignacion() { return idAsignacion; }
+    public String getTrabajador() { return trabajador; }
+    public String getUsuario() { return usuario; }
+    public String getDesde() { return desde; }
+    public String getHasta() { return hasta; }
+    public String getNotas() { return notas; }
+}
+
+private final ObservableList<CuidadorFila> cuidadores = FXCollections.observableArrayList();
+
+@FXML
+private void initializeTrabajadoresTab() {
+    if (tablaCuidadores == null) return; 
+    colTrabajador.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getTrabajador()));
+    colUsuario.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getUsuario()));
+    colDesde.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getDesde()));
+    colHasta.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getHasta()));
+    colNotas.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getNotas()));
+    tablaCuidadores.setItems(cuidadores);
+
+    if (chkSoloVigentesTrab != null) chkSoloVigentesTrab.setSelected(true);
+}
+
+public void setResidenteId(int id) {
+    this.residenteId = id;
+    initializeTrabajadoresTab(); 
+    cargarCuidadores();
+}
+
+@FXML
+private void toggleVigentesTrab() { cargarCuidadores(); }
+
+private void cargarCuidadores() {
+    if (tablaCuidadores == null) return;
+    boolean soloVigentes = (chkSoloVigentesTrab != null) && chkSoloVigentesTrab.isSelected();
+    cuidadores.setAll(consultarCuidadores(residenteId, soloVigentes));
+}
+
+private java.util.List<CuidadorFila> consultarCuidadores(int resId, boolean soloVigentes) {
+    String sql = """
+        SELECT
+          a.id                AS asignacion_id,
+          t.nombre AS trabajador,
+          COALESCE(u.username, t.usuario)           AS usuario,
+          a.start_date       AS desde,
+          a.end_date         AS hasta,
+          IFNULL(a.notas,'') AS notas
+        FROM asignacion_trabajador a
+        JOIN trabajadores t  ON t.id = a.trabajador_id
+        LEFT JOIN usuarios u ON u.trabajador_id = t.id AND u.rol='TRABAJADOR'
+        WHERE a.residente_id = ?
+    """ + (soloVigentes ? " AND a.end_date IS NULL AND t.activo = 1 " : "") + """
+        ORDER BY (a.end_date IS NULL) DESC, a.start_date DESC, trabajador
+    """;
+
+    java.util.List<CuidadorFila> lista = new java.util.ArrayList<>();
+    try (Connection c = ConexionBD.obtener();
+         PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setInt(1, resId);
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                lista.add(new CuidadorFila(
+                    rs.getInt("asignacion_id"),
+                    rs.getString("trabajador"),
+                    rs.getString("usuario"),
+                    rs.getString("desde"),
+                    rs.getString("hasta"),
+                    rs.getString("notas")
+                ));
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        Alert a = new Alert(Alert.AlertType.ERROR, e.getMessage(), ButtonType.OK);
+        a.setHeaderText("Error cargando cuidadores");
+        a.showAndWait();
+    }
+    return lista;
+}
+
+@FXML
+private void cerrarAsignacionTrab() {
+    CuidadorFila sel = tablaCuidadores.getSelectionModel().getSelectedItem();
+    if (sel == null) {
+        new Alert(Alert.AlertType.INFORMATION, "Selecciona una asignación para cerrar.", ButtonType.OK).showAndWait();
+        return;
+    }
+    if (sel.getHasta() != null && !sel.getHasta().isBlank()) {
+        new Alert(Alert.AlertType.INFORMATION, "La asignación ya está cerrada.", ButtonType.OK).showAndWait();
+        return;
+    }
+    if (!confirm("¿Cerrar la asignación seleccionada a fecha de hoy?")) return;
+
+    try (Connection c = ConexionBD.obtener();
+         PreparedStatement ps = c.prepareStatement("UPDATE asignacion_trabajador SET end_date = date('now') WHERE id=? AND end_date IS NULL")) {
+        ps.setInt(1, sel.getIdAsignacion());
+        int n = ps.executeUpdate();
+        if (n == 0) {
+            new Alert(Alert.AlertType.WARNING, "No se pudo cerrar (puede que ya esté cerrada).", ButtonType.OK).showAndWait();
+        }
+        cargarCuidadores();
+    } catch (Exception e) {
+        Alert a = new Alert(Alert.AlertType.ERROR, e.getMessage(), ButtonType.OK);
+        a.setHeaderText("Error al cerrar");
+        a.showAndWait();
+    }
+}
+
+private static class TrabItem {
+    final int id;
+    final String etiqueta; // ej: "Rosa Pérez (staff07)" o "Rosa (—)" si no hay usuario
+    TrabItem(int id, String etiqueta) { this.id = id; this.etiqueta = etiqueta; }
+    @Override public String toString() { return etiqueta; }
+}
+
+@FXML
+private void asignarTrabajador() {
+    if (residente == null || residenteId == 0) {
+        new Alert(Alert.AlertType.INFORMATION, "Primero selecciona un residente.").showAndWait();
+        return;
+    }
+
+    try {
+        // 1) Cargar trabajadores ACTivos para elegir
+        var activos = cargarTrabajadoresActivos();
+        if (activos.isEmpty()) {
+            new Alert(Alert.AlertType.INFORMATION, "No hay trabajadores activos para asignar.").showAndWait();
+            return;
+        }
+
+        // 2) Construir diálogo sencillo
+        Dialog<ButtonType> dlg = new Dialog<>();
+        dlg.setTitle("Asignar cuidador");
+        dlg.setHeaderText("Selecciona trabajador y fecha de inicio");
+        dlg.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        ComboBox<TrabItem> cbTrab = new ComboBox<>(FXCollections.observableArrayList(activos));
+        cbTrab.getSelectionModel().selectFirst();
+
+        DatePicker dpInicio = new DatePicker(LocalDate.now());
+        TextArea taNotas = new TextArea();
+        taNotas.setPromptText("Notas (opcional)");
+        taNotas.setPrefRowCount(3);
+
+        GridPane gp = new GridPane();
+        gp.setHgap(10); gp.setVgap(8); gp.setPadding(new javafx.geometry.Insets(10));
+        gp.addRow(0, new Label("Trabajador:"), cbTrab);
+        gp.addRow(1, new Label("Inicio:"),     dpInicio);
+        gp.addRow(2, new Label("Notas:"),      taNotas);
+        dlg.getDialogPane().setContent(gp);
+
+        var res = dlg.showAndWait();
+        if (res.isEmpty() || res.get() != ButtonType.OK) return;
+
+        TrabItem sel = cbTrab.getValue();
+        LocalDate ini = dpInicio.getValue();
+        String notas = taNotas.getText() == null ? "" : taNotas.getText().trim();
+
+        if (sel == null) { new Alert(Alert.AlertType.INFORMATION, "Selecciona un trabajador.").showAndWait(); return; }
+        if (ini == null) { new Alert(Alert.AlertType.INFORMATION, "Selecciona la fecha de inicio.").showAndWait(); return; }
+
+        // 3) Evitar duplicado vigente (mismo residente + mismo trabajador con end_date NULL)
+        if (existeAsignacionVigente(residenteId, sel.id)) {
+            new Alert(Alert.AlertType.INFORMATION, "Ese trabajador ya está asignado actualmente a este residente.").showAndWait();
+            return;
+        }
+
+        // 4) Insertar asignación (vigente => end_date NULL)
+        try (Connection c = ConexionBD.obtener();
+             PreparedStatement ps = c.prepareStatement(
+                 "INSERT INTO asignacion_trabajador(residente_id, trabajador_id, start_date, end_date, notas) " +
+                 "VALUES (?,?,?,?,?)")) {
+            ps.setInt(1, residenteId);
+            ps.setInt(2, sel.id);
+            ps.setString(3, ini.toString());
+            ps.setNull(4, Types.VARCHAR);
+            ps.setString(5, notas);
+            ps.executeUpdate();
+        }
+
+        cargarCuidadores();
+        new Alert(Alert.AlertType.INFORMATION, "Asignación creada.").showAndWait();
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        Alert a = new Alert(Alert.AlertType.ERROR, e.getMessage(), ButtonType.OK);
+        a.setHeaderText("No se pudo asignar"); a.showAndWait();
+    }
+}
+
+/** Lista de trabajadores activos para el combo. SIN usar 'apellidos' (tu tabla no lo tiene). */
+private java.util.List<TrabItem> cargarTrabajadoresActivos() throws Exception {
+    String sql = """
+        SELECT t.id,
+               t.nombre AS nombre,
+               COALESCE(u.username, t.usuario) AS usuario
+        FROM trabajadores t
+        LEFT JOIN usuarios u ON u.trabajador_id = t.id AND u.rol='TRABAJADOR'
+        WHERE t.activo = 1
+        ORDER BY t.nombre, usuario
+    """;
+    var lista = new java.util.ArrayList<TrabItem>();
+    try (Connection c = ConexionBD.obtener();
+         PreparedStatement ps = c.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+            String etiqueta = rs.getString("nombre") + " (" +
+                    (rs.getString("usuario") == null ? "—" : rs.getString("usuario")) + ")";
+            lista.add(new TrabItem(rs.getInt("id"), etiqueta));
+        }
+    }
+    return lista;
+}
+
+/** Devuelve true si ya hay una asignación vigente entre ese residente y ese trabajador. */
+private boolean existeAsignacionVigente(int resId, int trabId) throws Exception {
+    String sql = """
+        SELECT EXISTS(
+            SELECT 1
+            FROM asignacion_trabajador
+            WHERE residente_id=? AND trabajador_id=? AND end_date IS NULL
+            LIMIT 1
+        )
+    """;
+    try (Connection c = ConexionBD.obtener(); PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setInt(1, resId);
+        ps.setInt(2, trabId);
+        try (ResultSet rs = ps.executeQuery()) {
+            return rs.next() && rs.getInt(1) == 1;
+        }
+    }
+}
+private boolean confirm(String msg) {
+    var r = new Alert(Alert.AlertType.CONFIRMATION, msg, ButtonType.YES, ButtonType.NO).showAndWait();
+    return r.isPresent() && r.get() == ButtonType.YES;
 }
 }
 
