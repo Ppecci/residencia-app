@@ -11,7 +11,6 @@
 <top>
     <VBox alignment="CENTER" spacing="8" style="-fx-padding: 8 8 0 8;">
         <children>
-            <!-- Logo (la imagen se carga en el controlador) -->
             <ImageView fx:id="logoImagen" fitHeight="100" preserveRatio="true" pickOnBounds="true"/>
 
             <ToolBar>

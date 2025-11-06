@@ -17,6 +17,7 @@
       <Button text="Guardar"   onAction="#guardar"/>
       <Separator/>
       <Button text="Ver detalle" onAction="#verDetalle"/>
+      <Button fx:id="btnEliminar" text="Eliminar" onAction="#eliminar" styleClass="danger-btn"/>
     </ToolBar>
   </top>
 

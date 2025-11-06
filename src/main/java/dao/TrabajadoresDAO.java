@@ -12,32 +12,38 @@ public class TrabajadoresDAO {
     public List<Trabajador> listar(String filtro) throws Exception {
     List<Trabajador> out = new ArrayList<>();
 
+    // 1) Mostrar usuario: preferir u.username ACTIVO; si no hay, caer a t.usuario (legacy)
     String base = """
         SELECT
             t.id,
             t.nombre,
-            u.username AS usuario,   -- ← de usuarios
+            CASE
+              WHEN u.username IS NOT NULL AND u.activo = 1 THEN u.username
+              ELSE t.usuario
+            END AS usuario,
             t.email,
             t.activo
         FROM trabajadores t
         LEFT JOIN usuarios u
                ON u.trabajador_id = t.id
               AND u.rol = 'TRABAJADOR'
-              AND u.activo = 1
     """;
 
+    // 2) Búsqueda: usar COALESCE(u.username, t.usuario) para que encuentre aunque no haya fila en usuarios
     String sql = base + (
         (filtro == null || filtro.isBlank())
         ? " ORDER BY t.nombre, usuario"
-        : " WHERE t.nombre LIKE ? OR u.username LIKE ? OR t.email LIKE ? ORDER BY t.nombre, usuario"
+        : " WHERE t.nombre LIKE ? OR COALESCE(u.username, t.usuario) LIKE ? OR t.email LIKE ? ORDER BY t.nombre, usuario"
     );
 
     try (Connection c = ConexionBD.obtener();
          PreparedStatement ps = c.prepareStatement(sql)) {
 
         if (!(filtro == null || filtro.isBlank())) {
-            String like = "%" + filtro + "%";
-            ps.setString(1, like); ps.setString(2, like); ps.setString(3, like);
+            String like = "%" + filtro.trim() + "%";
+            ps.setString(1, like);
+            ps.setString(2, like);
+            ps.setString(3, like);
         }
 
         try (ResultSet rs = ps.executeQuery()) {
@@ -55,7 +61,6 @@ public class TrabajadoresDAO {
     return out;
 }
 
-
     public void insertar(Trabajador t) throws Exception {
     try (Connection c = ConexionBD.obtener()) {
         c.setAutoCommit(false);
@@ -63,18 +68,19 @@ public class TrabajadoresDAO {
             // 1) trabajadores: incluye USUARIO para cumplir NOT NULL
             int trabajadorId;
             try (PreparedStatement ps = c.prepareStatement(
-                    "INSERT INTO trabajadores (nombre, usuario, email, activo) VALUES (?,?,?,?)",
-                    Statement.RETURN_GENERATED_KEYS)) {
-                ps.setString(1, t.getNombre());
-                ps.setString(2, t.getUsuario());   // ← rellenamos la columna legacy
-                ps.setString(3, t.getEmail());
-                ps.setInt(4, Boolean.TRUE.equals(t.getActivo()) ? 1 : 0);
-                ps.executeUpdate();
-                try (ResultSet rs = ps.getGeneratedKeys()) {
-                    if (!rs.next()) throw new SQLException("No se pudo obtener id de trabajador");
-                    trabajadorId = rs.getInt(1);
-                }
+        "INSERT INTO trabajadores (nombre, usuario, email, activo, password_hash) VALUES (?,?,?,?,?)",
+        Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, t.getNombre());
+            ps.setString(2, t.getUsuario());   // ← mantener legacy sincronizado
+            ps.setString(3, t.getEmail());
+            ps.setInt(4, Boolean.TRUE.equals(t.getActivo()) ? 1 : 0);
+            ps.setString(5, t.getPasswordHashTemporal()); // ← CLAVE: hash que calculas en el controlador
+            ps.executeUpdate();
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (!rs.next()) throw new SQLException("No se pudo obtener id de trabajador");
+                trabajadorId = rs.getInt(1);
             }
+        }
 
             // 2) usuarios: fuente de verdad
             try (PreparedStatement ps = c.prepareStatement(
@@ -144,46 +150,69 @@ public class TrabajadoresDAO {
     }
 }
 
-    public void eliminar(int id) throws Exception {
-        try (Connection c = ConexionBD.obtener();
-             PreparedStatement ps = c.prepareStatement("DELETE FROM trabajadores WHERE id=?")) {
-            ps.setInt(1, id);
-            ps.executeUpdate();
+        public void eliminar(int id) throws Exception {
+        try (Connection c = ConexionBD.obtener()) {
+            c.setAutoCommit(false);
+            try {
+                try (PreparedStatement ps = c.prepareStatement(
+                        "DELETE FROM usuarios WHERE trabajador_id=? AND rol='TRABAJADOR'")) {
+                    ps.setInt(1, id);
+                    ps.executeUpdate();
+                }
+
+                try (PreparedStatement ps = c.prepareStatement(
+                        "DELETE FROM trabajadores WHERE id=?")) {
+                    ps.setInt(1, id);
+                    ps.executeUpdate();
+                }
+
+                c.commit();
+            } catch (Exception e) {
+                c.rollback();
+                throw e;
+            } finally {
+                c.setAutoCommit(true);
+            }
         }
     }
 
     public List<Trabajador> listarActivosExcepto(int idExcluir) throws Exception {
     String sql = """
         SELECT
-            t.id, t.nombre,
-            u.username AS usuario,
-            t.email, t.activo
+            t.id,
+            t.nombre,
+            CASE
+              WHEN u.username IS NOT NULL AND u.activo = 1 THEN u.username
+              ELSE t.usuario
+            END AS usuario,
+            t.email,
+            t.activo
         FROM trabajadores t
         LEFT JOIN usuarios u
                ON u.trabajador_id = t.id
               AND u.rol = 'TRABAJADOR'
-              AND u.activo = 1
         WHERE t.activo = 1 AND t.id <> ?
         ORDER BY t.nombre
     """;
-    List<Trabajador> out = new ArrayList<>();
-    try (Connection c = ConexionBD.obtener(); PreparedStatement ps = c.prepareStatement(sql)) {
-        ps.setInt(1, idExcluir);
-        try (ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                out.add(new Trabajador(
-                    rs.getInt("id"),
-                    rs.getString("nombre"),
-                    rs.getString("usuario"),
-                    rs.getString("email"),
-                    rs.getInt("activo") == 1
-                ));
-            }
-        }
-    }
-    return out;
-}
 
+            List<Trabajador> out = new ArrayList<>();
+            try (Connection c = ConexionBD.obtener();
+                PreparedStatement ps = c.prepareStatement(sql)) {
+                ps.setInt(1, idExcluir);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        out.add(new Trabajador(
+                            rs.getInt("id"),
+                            rs.getString("nombre"),
+                            rs.getString("usuario"),
+                            rs.getString("email"),
+                            rs.getInt("activo") == 1
+                        ));
+                    }
+                }
+            }
+            return out;
+        }
 
     
     public List<TrabajadorResumenFila> listarAsignados(int trabajadorId, String filtro) throws Exception {
