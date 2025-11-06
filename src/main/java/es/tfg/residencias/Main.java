@@ -8,8 +8,10 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        // Inicializa Navegacion con el Stage y carga la primera vista
         Navegacion.init(stage, "/fxml/AccesoVista.fxml");
+        stage.getIcons().add(
+    new javafx.scene.image.Image(Main.class.getResourceAsStream("/img/logo2.png"))
+);
     }
 
     public static void main(String[] args) {
