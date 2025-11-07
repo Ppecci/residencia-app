@@ -9,8 +9,11 @@ import javafx.scene.control.DialogPane;
 import javafx.stage.Stage;
 
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Navegacion {
+    private static final Logger log = LoggerFactory.getLogger(Navegacion.class);
 
     private static Stage stage;
     private static Scene scene;
@@ -24,19 +27,23 @@ public class Navegacion {
 
         Parent root = FXMLLoader.load(Navegacion.class.getResource(fxmlInicial));
         scene = new Scene(root);
+        log.info("Inicializando escena: {}", fxmlInicial);
+
         if (!scene.getStylesheets().contains(APP_CSS)) {
             scene.getStylesheets().add(APP_CSS);
         }
 
         stage.setTitle("Gestor de Residencias");
         stage.setScene(scene);
-        stage.setMaximized(true); // o maximizar();
+        stage.setMaximized(true);
         stage.show();
     }
 
     public static void cambiar(String rutaFxml) throws Exception {
+        log.info("Cambiando escena a: {}", rutaFxml);
+
         Parent nuevoRoot = FXMLLoader.load(Navegacion.class.getResource(rutaFxml));
-        // Mantiene tamaño, posición y estado del Stage
+      
         scene.setRoot(nuevoRoot);
     }
 
