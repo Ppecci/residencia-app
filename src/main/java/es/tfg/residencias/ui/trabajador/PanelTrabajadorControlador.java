@@ -9,12 +9,15 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import modelo.TrabajadorResumenFila;
 import javafx.scene.image.ImageView; 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import java.util.List;
 
 public class PanelTrabajadorControlador {
-
-    // UI
+    private static final Logger log = LoggerFactory.getLogger(PanelTrabajadorControlador.class);
+    
     @FXML private Label lblTitulo;
     @FXML private TextField txtBuscar;
 
@@ -25,7 +28,6 @@ public class PanelTrabajadorControlador {
 
     @FXML private Button btnEditarPrescripciones, btnEditarDieta, btnCitas;
 
-    // Estado
     private final TrabajadoresDAO dao = new TrabajadoresDAO();
     private final ObservableList<TrabajadorResumenFila> datos = FXCollections.observableArrayList();
 
@@ -34,51 +36,77 @@ public class PanelTrabajadorControlador {
     @FXML private ImageView logoImagen;
 
 
-    @FXML
-    public void initialize() {
-        colResidenteId.setCellValueFactory(new PropertyValueFactory<>("residenteId"));
-        colNombre.setCellValueFactory(     new PropertyValueFactory<>("nombre"));
-        colApellidos.setCellValueFactory(  new PropertyValueFactory<>("apellidos"));
+  @FXML
+        public void initialize() {
 
-        colHabId.setCellValueFactory(      new PropertyValueFactory<>("habId"));
-        colHabNumero.setCellValueFactory(  new PropertyValueFactory<>("habNumero"));
-        colHabPlanta.setCellValueFactory(  new PropertyValueFactory<>("habPlanta"));
+            if (sesion.Sesion.getUsuario() == null) {
+                log.warn("Acceso a PanelTrabajador sin sesión → redirigir a Acceso");
+                try {
+                    es.tfg.residencias.ui.util.Navegacion.cambiar("/fxml/AccesoVista.fxml");
+                } catch (Exception e) {
+                    log.warn("No se pudo redirigir a AccesoVista.fxml: {}", e.getMessage(), e);
+                }
+                return;
+            }
 
-        colMedicacion.setCellValueFactory( new PropertyValueFactory<>("medicacionResumen"));
+            if (!sesion.Sesion.esTrabajador()) {
+                var u = sesion.Sesion.getUsuario();
+                log.warn("ACCESO_DENEGADO accion=VER_PANEL_TRABAJADOR rol={} userId={}",
+                        (u != null ? u.getRol() : "—"), (u != null ? u.getId() : -1));
+                try {
+                    es.tfg.residencias.ui.util.Navegacion.cambiar("/fxml/AccesoVista.fxml");
+                } catch (Exception e) {
+                    log.warn("No se pudo redirigir a AccesoVista.fxml tras denegar acceso: {}", e.getMessage(), e);
+                }
+                return;
+            }
 
-        colDietaId.setCellValueFactory(    new PropertyValueFactory<>("dietaId"));
-        colDietaNotas.setCellValueFactory( new PropertyValueFactory<>("dietaNotas"));
+            var u = sesion.Sesion.getUsuario();
+            log.info("Acceso a PanelTrabajador por userId={} rol={}", u.getId(), u.getRol());
 
-        colProximaCita.setCellValueFactory(new PropertyValueFactory<>("proximaCita"));
+            colResidenteId.setCellValueFactory(new PropertyValueFactory<>("residenteId"));
+            colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
+            colApellidos.setCellValueFactory(new PropertyValueFactory<>("apellidos"));
+            colHabId.setCellValueFactory(new PropertyValueFactory<>("habId"));
+            colHabNumero.setCellValueFactory(new PropertyValueFactory<>("habNumero"));
+            colHabPlanta.setCellValueFactory(new PropertyValueFactory<>("habPlanta"));
+            colMedicacion.setCellValueFactory(new PropertyValueFactory<>("medicacionResumen"));
+            colDietaId.setCellValueFactory(new PropertyValueFactory<>("dietaId"));
+            colDietaNotas.setCellValueFactory(new PropertyValueFactory<>("dietaNotas"));
+            colProximaCita.setCellValueFactory(new PropertyValueFactory<>("proximaCita"));
+            tabla.setItems(datos);
 
-        tabla.setItems(datos);
+            tabla.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
+                boolean sel = (n != null);
+                btnEditarPrescripciones.setDisable(!sel);
+                btnEditarDieta.setDisable(!sel);
+                btnCitas.setDisable(!sel);
+            });
 
+            btnEditarPrescripciones.setDisable(true);
+            btnEditarDieta.setDisable(true);
+            btnCitas.setDisable(true);
 
-        tabla.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
-            boolean sel = (n != null);
-            btnEditarPrescripciones.setDisable(!sel);
-            btnEditarDieta.setDisable(!sel);
-            btnCitas.setDisable(!sel);
-        });
+            if (trabajadorId != null) {
+                log.debug("Inicialización: refrescando listado inicial para trabajadorId={}", trabajadorId);
+                refrescar();
+            }
 
-        btnEditarPrescripciones.setDisable(true);
-        btnEditarDieta.setDisable(true);
-        btnCitas.setDisable(true);
-
-        if (trabajadorId != null) {
-            refrescar();
+            try {
+                var url = getClass().getResource("/img/logo-png.png");
+                if (url != null) {
+                    logoImagen.setImage(new javafx.scene.image.Image(url.toExternalForm(), true));
+                    logoImagen.setFitHeight(100);
+                    logoImagen.setPreserveRatio(true);
+                    logoImagen.setSmooth(false);
+                    log.info("Logo de PanelTrabajador cargado correctamente");
+                } else {
+                    log.warn("No se encontró /img/logo-png.png (classpath)");
+                }
+            } catch (Throwable t) {
+                log.error("Error cargando logo en PanelTrabajador", t);
+            }
         }
-            var url = getClass().getResource("/img/logo-png.png"); // usa el nombre real del archivo
-    if (url != null) {
-        logoImagen.setImage(new javafx.scene.image.Image(url.toExternalForm(), true));
-        logoImagen.setFitHeight(100);     // ajusta tamaño a tu gusto
-        logoImagen.setPreserveRatio(true);
-        logoImagen.setSmooth(false);      // más nítido al escalar
-    } else {
-        System.err.println("[DIAG] No se encontró /img/logo-png.png");
-    }
-    }
-
 
    public void setTrabajadorId(int trabajadorId) {
     this.trabajadorId = trabajadorId;
@@ -185,7 +213,7 @@ private void editarPrescripciones() {
                 st.setScene(scene);
 
                 st.initOwner(tabla.getScene().getWindow());
-                st.initModality(javafx.stage.Modality.WINDOW_MODAL); // opcional, recomendable
+                st.initModality(javafx.stage.Modality.WINDOW_MODAL);
                 st.showAndWait();
 
                 refrescar();
@@ -222,7 +250,6 @@ private void editarPrescripciones() {
                     javafx.stage.Stage st = new javafx.stage.Stage();
                     st.setTitle("Citas médicas — " + nombreCompleto);
 
-                    // 👇 AÑADIR CSS A LA NUEVA ESCENA
                     javafx.scene.Scene scene = new javafx.scene.Scene(root);
                     scene.getStylesheets().add(Navegacion.appCss());
                     st.setScene(scene);
@@ -240,36 +267,44 @@ private void editarPrescripciones() {
 
 
         @FXML
-        private void cerrarSesion(javafx.event.ActionEvent e) {
-            javafx.scene.control.Alert alerta = new javafx.scene.control.Alert(
-                    javafx.scene.control.Alert.AlertType.CONFIRMATION,
-                    "¿Seguro que quieres cerrar sesión?",
-                    javafx.scene.control.ButtonType.YES,
-                    javafx.scene.control.ButtonType.NO
-            );
-            alerta.setHeaderText("Cerrar sesión");
-            alerta.setTitle("Confirmar");
+private void cerrarSesion(javafx.event.ActionEvent e) {
+    var alerta = new javafx.scene.control.Alert(
+            javafx.scene.control.Alert.AlertType.CONFIRMATION,
+            "¿Seguro que quieres cerrar sesión?",
+            javafx.scene.control.ButtonType.YES,
+            javafx.scene.control.ButtonType.NO
+    );
+    alerta.setHeaderText("Cerrar sesión");
+    alerta.setTitle("Confirmar");
+    es.tfg.residencias.ui.util.Navegacion.aplicarCss(alerta);
 
-            Navegacion.aplicarCss(alerta);
+    var resultado = alerta.showAndWait();
+    if (resultado.isEmpty() || resultado.get() != javafx.scene.control.ButtonType.YES) {
+        return;
+    }
 
-            var resultado = alerta.showAndWait();
-            if (resultado.isEmpty() || resultado.get() != javafx.scene.control.ButtonType.YES) {
-                return;
-            }
+  
+    if (sesion.Sesion.getUsuario() != null) {
+        log.info("LOGOUT userId={} rol={}",
+                sesion.Sesion.getUsuario().getId(),
+                sesion.Sesion.getUsuario().getRol());
+    } else {
+        log.info("LOGOUT sin usuario en sesión (flujo atípico)");
+    }
 
-            try {
-                trabajadorId = null;
-                nombreTrabajador = null;
-                datos.clear();
+    try {
+        trabajadorId = null;
+        nombreTrabajador = null;
+        datos.clear();
 
-                Navegacion.cambiar("/fxml/AccesoVista.fxml");
+  
 
-            } catch (Exception ex) {
-                error("No se pudo volver al login",
-                    ex.getClass().getSimpleName() + ": " + ex.getMessage());
-            }
-        }
-
+        es.tfg.residencias.ui.util.Navegacion.cambiar("/fxml/AccesoVista.fxml");
+    } catch (Exception ex) {
+        log.warn("No se pudo volver al login: {}", ex.getMessage(), ex);
+        error("No se pudo volver al login", ex.getClass().getSimpleName() + ": " + ex.getMessage());
+    }
+}
 
     private void info(String msg) {
         Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);

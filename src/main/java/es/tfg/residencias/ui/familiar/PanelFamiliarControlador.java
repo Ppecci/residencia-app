@@ -8,6 +8,9 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import es.tfg.residencias.ui.util.Navegacion;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -16,12 +19,13 @@ import java.util.Objects;
 
 public class PanelFamiliarControlador {
 
-    // Top bar
+    private static final Logger log = LoggerFactory.getLogger(PanelFamiliarControlador.class);
+
+
     @FXML private Label lblFamiliar;
     @FXML private Label lblResidente;   
     @FXML private TextField txtBuscar;
 
-    // Tabla
     @FXML private TableView<FilaResumenFamiliar> tabla;
     @FXML private TableColumn<FilaResumenFamiliar, Number> colIdResidente;
     @FXML private TableColumn<FilaResumenFamiliar, String> colNombre;
@@ -37,7 +41,6 @@ public class PanelFamiliarControlador {
    
     @FXML private Label lblEstado;
 
-    // Dependencias
     private final FamiliarDAO familiarDAO = new FamiliarDAO();
 
     private int familiarId;        
@@ -48,47 +51,73 @@ public class PanelFamiliarControlador {
     @FXML private javafx.scene.image.ImageView logoImagen;
 
 
-    @FXML
-    public void initialize() {
-        
-        this.familiarId = obtenerFamiliarIdDesdeSesion();
-        this.nombreFamiliar = obtenerNombreFamiliarDesdeSesion();
+   @FXML
+        public void initialize() {
 
-        lblFamiliar.setText(nombreFamiliar != null ? nombreFamiliar : "(Familiar)");
-
-       
-        tabla.setEditable(false);
-        tabla.setPlaceholder(new Label("Sin datos para mostrar"));
-
-        colIdResidente.setCellValueFactory(c -> c.getValue().idResidenteProperty());
-        colNombre.setCellValueFactory(c -> c.getValue().nombreProperty());
-        colApellidos.setCellValueFactory(c -> c.getValue().apellidosProperty());
-        colIdHabitacion.setCellValueFactory(c -> c.getValue().idHabitacionProperty());
-        colNumero.setCellValueFactory(c -> c.getValue().numeroProperty());
-        colPlanta.setCellValueFactory(c -> c.getValue().plantaProperty());
-        colMedResumen.setCellValueFactory(c -> c.getValue().medicacionResumenProperty());
-        colDietaNombre.setCellValueFactory(c -> c.getValue().dietaNombreProperty());
-        colDietaNotas.setCellValueFactory(c -> c.getValue().dietaNotasProperty());
-        colProximaCita.setCellValueFactory(c -> c.getValue().proximaCitaProperty());
-
-        tabla.setItems(datos);
-
-        cargarTabla(null);
-            try {
-            var url = getClass().getResource("/img/logo-png.png"); // o el nombre real de tu logo
-            if (url != null) {
-                logoImagen.setImage(new javafx.scene.image.Image(url.toExternalForm(), true));
-                logoImagen.setFitHeight(100);
-                logoImagen.setPreserveRatio(true);
-                logoImagen.setSmooth(false); // para que no se vea borroso
-            } else {
-                System.err.println("[DIAG] No se encontró /img/logo-png.png");
+            if (Sesion.getUsuario() == null) {
+                log.warn("Acceso a PanelFamiliar sin sesión → redirigir a Acceso");
+                try {
+                    Navegacion.cambiar("/fxml/AccesoVista.fxml");
+                } catch (Exception e) {
+                    log.warn("No se pudo redirigir a AccesoVista.fxml: {}", e.getMessage(), e);
+                }
+                return;
             }
-        } catch (Throwable t) {
-            System.err.println("[DIAG] Error cargando logo en PanelFamiliar:");
-            t.printStackTrace();
+
+            if (!Sesion.esFamiliar()) {
+                var u = Sesion.getUsuario();
+                log.warn("ACCESO_DENEGADO accion=VER_PANEL_FAMILIAR rol={} userId={}",
+                        (u != null ? u.getRol() : "—"), (u != null ? u.getId() : -1));
+                try {
+                    Navegacion.cambiar("/fxml/AccesoVista.fxml");
+                } catch (Exception e) {
+                    log.warn("No se pudo redirigir a AccesoVista.fxml tras denegar acceso: {}", e.getMessage(), e);
+                }
+                return; 
+            }
+
+            var u = Sesion.getUsuario();
+            log.info("Acceso a PanelFamiliar por userId={} rol={}", u.getId(), u.getRol());
+
+            this.familiarId = obtenerFamiliarIdDesdeSesion();
+            this.nombreFamiliar = obtenerNombreFamiliarDesdeSesion();
+            lblFamiliar.setText(nombreFamiliar != null ? nombreFamiliar : "(Familiar)");
+
+            tabla.setEditable(false);
+            tabla.setPlaceholder(new Label("Sin datos para mostrar"));
+
+            colIdResidente.setCellValueFactory(c -> c.getValue().idResidenteProperty());
+            colNombre.setCellValueFactory(c -> c.getValue().nombreProperty());
+            colApellidos.setCellValueFactory(c -> c.getValue().apellidosProperty());
+            colIdHabitacion.setCellValueFactory(c -> c.getValue().idHabitacionProperty());
+            colNumero.setCellValueFactory(c -> c.getValue().numeroProperty());
+            colPlanta.setCellValueFactory(c -> c.getValue().plantaProperty());
+            colMedResumen.setCellValueFactory(c -> c.getValue().medicacionResumenProperty());
+            colDietaNombre.setCellValueFactory(c -> c.getValue().dietaNombreProperty());
+            colDietaNotas.setCellValueFactory(c -> c.getValue().dietaNotasProperty());
+            colProximaCita.setCellValueFactory(c -> c.getValue().proximaCitaProperty());
+
+            tabla.setItems(datos);
+
+            cargarTabla(null);
+
+            try {
+                var url = getClass().getResource("/img/logo-png.png");
+                if (url != null) {
+                    if (logoImagen != null) {
+                        logoImagen.setImage(new javafx.scene.image.Image(url.toExternalForm(), true));
+                        logoImagen.setFitHeight(100);
+                        logoImagen.setPreserveRatio(true);
+                        logoImagen.setSmooth(false);
+                    }
+                    log.info("Logo de PanelFamiliar cargado correctamente");
+                } else {
+                    log.warn("No se encontró /img/logo-png.png (classpath)");
+                }
+            } catch (Throwable t) {
+                log.error("Error cargando logo en PanelFamiliar", t);
+            }
         }
-    }
 
     @FXML
     private void buscar() {
@@ -113,20 +142,26 @@ private void cerrarSesion() {
     );
     alerta.setHeaderText("Cerrar sesión");
     alerta.setTitle("Confirmación");
-    alerta.getDialogPane().getStylesheets().add(es.tfg.residencias.ui.util.Navegacion.appCss());
-
+    Navegacion.aplicarCss(alerta);
 
     var res = alerta.showAndWait();
     if (res.isEmpty() || res.get() != javafx.scene.control.ButtonType.YES) return;
 
+    // LOGOUT en log
+    if (Sesion.getUsuario() != null) {
+        log.info("LOGOUT userId={} rol={}", Sesion.getUsuario().getId(), Sesion.getUsuario().getRol());
+    } else {
+        log.info("LOGOUT sin usuario en sesión (flujo atípico)");
+    }
+
     try {
-        javafx.scene.Parent root = javafx.fxml.FXMLLoader.load(
-                getClass().getResource("/fxml/AccesoVista.fxml"));
-        btnCerrarSesion.getScene().setRoot(root);
+        Navegacion.cambiar("/fxml/AccesoVista.fxml");
     } catch (Exception e) {
+        log.warn("No se pudo cargar /fxml/AccesoVista.fxml: {}", e.getMessage(), e);
         mostrarError("No se pudo cargar /fxml/AccesoVista.fxml", e);
     }
 }
+
     private void mostrarError(String msg, Exception e) {
         e.printStackTrace();
         Alert a = new Alert(Alert.AlertType.ERROR, msg);
