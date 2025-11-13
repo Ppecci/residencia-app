@@ -11,9 +11,7 @@ import java.util.Optional;
 
 public class TrabajadoresDAO {
 
-    // ---------------------------------------------------------------------
-    // LISTAR (con preferencia por username activo en 'usuarios')
-    // ---------------------------------------------------------------------
+    
     public List<Trabajador> listar(String filtro) throws Exception {
         List<Trabajador> out = new ArrayList<>();
 
@@ -65,17 +63,13 @@ public class TrabajadoresDAO {
         return out;
     }
 
-    // ---------------------------------------------------------------------
-    // INSERTAR (crea en 'trabajadores' y en 'usuarios' en una transacción)
-    //  - t.getPasswordHashTemporal() debe venir relleno desde el controlador
-    // ---------------------------------------------------------------------
+
     public void insertar(Trabajador t) throws Exception {
         try (Connection c = ConexionBD.obtener()) {
             c.setAutoCommit(false);
             try {
                 int trabajadorId;
 
-                // 1) trabajadores (guardamos también password_hash por NOT NULL legacy)
                 try (PreparedStatement ps = c.prepareStatement(
                         "INSERT INTO trabajadores (nombre, usuario, email, activo, password_hash) VALUES (?,?,?,?,?)",
                         Statement.RETURN_GENERATED_KEYS)) {
@@ -91,7 +85,6 @@ public class TrabajadoresDAO {
                     }
                 }
 
-                // 2) usuarios (fuente de verdad para login)
                 try (PreparedStatement ps = c.prepareStatement(
                         "INSERT INTO usuarios (username, password_hash, rol, trabajador_id, activo, created_at) " +
                         "VALUES (?,?,?,?,?, datetime('now'))")) {
@@ -113,15 +106,10 @@ public class TrabajadoresDAO {
         }
     }
 
-    // ---------------------------------------------------------------------
-    // ACTUALIZAR datos del trabajador y reflejo en 'usuarios'
-    //  (no toca el password aquí)
-    // ---------------------------------------------------------------------
     public void actualizar(Trabajador t) throws Exception {
         try (Connection c = ConexionBD.obtener()) {
             c.setAutoCommit(false);
             try {
-                // trabajadores
                 try (PreparedStatement ps = c.prepareStatement(
                         "UPDATE trabajadores SET nombre=?, usuario=?, email=?, activo=? WHERE id=?")) {
                     ps.setString(1, t.getNombre());
@@ -132,7 +120,6 @@ public class TrabajadoresDAO {
                     ps.executeUpdate();
                 }
 
-                // usuarios
                 try (PreparedStatement ps = c.prepareStatement(
                         "UPDATE usuarios SET username=?, activo=? WHERE trabajador_id=? AND rol='TRABAJADOR'")) {
                     ps.setString(1, t.getUsuario());
@@ -151,9 +138,6 @@ public class TrabajadoresDAO {
         }
     }
 
-    // ---------------------------------------------------------------------
-    // ACTUALIZAR PASSWORD (solo en 'usuarios')
-    // ---------------------------------------------------------------------
     public void actualizarPassword(int idTrabajador, String nuevoHash) throws Exception {
         String sql = "UPDATE usuarios SET password_hash=? WHERE trabajador_id=? AND rol='TRABAJADOR'";
         try (Connection c = ConexionBD.obtener();
@@ -164,22 +148,18 @@ public class TrabajadoresDAO {
         }
     }
 
-    // ---------------------------------------------------------------------
-    // ELIMINAR (borra primero en 'usuarios', después en 'trabajadores')
-    //  - Si hay dependencias (asignacion_trabajador sin CASCADE) puede fallar por FK
-    // ---------------------------------------------------------------------
+   
     public void eliminar(int id) throws Exception {
         try (Connection c = ConexionBD.obtener()) {
             c.setAutoCommit(false);
             try {
-                // usuarios
                 try (PreparedStatement ps = c.prepareStatement(
                         "DELETE FROM usuarios WHERE trabajador_id=? AND rol='TRABAJADOR'")) {
                     ps.setInt(1, id);
                     ps.executeUpdate();
                 }
 
-                // trabajadores
+      
                 try (PreparedStatement ps = c.prepareStatement(
                         "DELETE FROM trabajadores WHERE id=?")) {
                     ps.setInt(1, id);
@@ -196,9 +176,7 @@ public class TrabajadoresDAO {
         }
     }
 
-    // ---------------------------------------------------------------------
-    // LISTAR ACTIVOS (excluyendo uno), mostrando username preferente
-    // ---------------------------------------------------------------------
+   
     public List<Trabajador> listarActivosExcepto(int idExcluir) throws Exception {
         String sql = """
             SELECT
@@ -237,10 +215,7 @@ public class TrabajadoresDAO {
         return out;
     }
 
-    // ---------------------------------------------------------------------
-    // LISTAR RESIDENTES asignados a un trabajador (vista resumen)
-    //   - Solo vigentes: end_date NULL
-    // ---------------------------------------------------------------------
+ 
     public List<TrabajadorResumenFila> listarAsignados(int trabajadorId, String filtro) throws Exception {
         StringBuilder where = new StringBuilder();
         List<String> paramsLike = new ArrayList<>();
@@ -343,9 +318,6 @@ public class TrabajadoresDAO {
         }
     }
 
-    // ---------------------------------------------------------------------
-    // OBTENER NOMBRE por id (solo activos)
-    // ---------------------------------------------------------------------
     public Optional<String> obtenerNombrePorId(int idTrabajador) throws Exception {
         String sql = "SELECT nombre FROM trabajadores WHERE id=? AND activo=1";
         try (Connection c = ConexionBD.obtener();
