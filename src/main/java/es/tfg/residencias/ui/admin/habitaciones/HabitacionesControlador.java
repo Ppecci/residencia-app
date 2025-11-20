@@ -68,7 +68,6 @@ public class HabitacionesControlador {
 
             try {
                 int id = dao.insertarHabitacion(numero, planta.isBlank() ? null : planta);
-                // Limpieza + refresco
                 inNumero.clear();
                 inPlanta.clear();
                 refrescar();
@@ -78,7 +77,6 @@ public class HabitacionesControlador {
                 ok.showAndWait();
                 inNumero.requestFocus();
             } catch (Exception e) {
-                // Mensaje “bonito” si viola UNIQUE de 'numero'
                 String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
                 if (msg.contains("unique") || msg.contains("constraint")) {
                     error("Número duplicado", "Ya existe una habitación con ese número.");
@@ -92,7 +90,6 @@ public class HabitacionesControlador {
         try {
             Modo modo = (cbModo.getValue() == null) ? Modo.TODAS : cbModo.getValue();
             var lista = dao.listarOcupacionActual(filtro, modo);
-            // En tu JavaFX, setAll/addAll aceptan varargs: pasamos un array
             datos.setAll(lista.toArray(new HabitacionOcupacionVista[0]));
         } catch (Exception e) {
             error("Error cargando habitaciones", e.getMessage());

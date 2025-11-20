@@ -31,7 +31,6 @@ public class AccesoControlador {
 
     private final UsuariosDAO usuariosDAO = new UsuariosDAO();
 
-    // Airbag anti doble-disparo
     private boolean loginEnCurso = false;
 
     @FXML
@@ -51,11 +50,9 @@ public class AccesoControlador {
 
     @FXML
     private void alAcceder(javafx.event.ActionEvent e) {
-        // Diagnóstico de quién dispara el evento
         log.debug("alAcceder() disparado por {}",
             (e != null && e.getSource() != null) ? e.getSource().getClass().getName() : "desconocido");
 
-        // Airbag anti-doble-disparo
         if (loginEnCurso) return;
         loginEnCurso = true;
 
@@ -72,17 +69,14 @@ public class AccesoControlador {
                 return;
             }
 
-            // 1) Buscar usuario por username
             Usuario u = usuariosDAO.buscarPorUsername(usuario);
 
-            // 2) Validaciones
             if (u == null) {
                 errorEtiqueta.setText("Usuario o contraseña incorrectos.");
                 log.warn("Login fallido usuario='{}' (usuario no encontrado)", usuario);
                 return;
             }
 
-            // 3) Verificar bcrypt
             boolean ok = BCrypt.checkpw(clave, u.getPasswordHash());
             if (!ok) {
                 errorEtiqueta.setText("Usuario o contraseña incorrectos.");
@@ -90,7 +84,6 @@ public class AccesoControlador {
                 return;
             }
 
-            // 4) Login correcto → sesión + navegación
             Sesion.setUsuario(u);
             log.info("Login OK. usuarioId={} rol={}", u.getId(), u.getRol());
 

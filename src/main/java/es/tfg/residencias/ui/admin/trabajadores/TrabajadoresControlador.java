@@ -160,22 +160,19 @@ private void guardar() {
             dao.insertar(t);
 
         } else {
-            // --- estamos editando un trabajador existente ---
-            boolean estabaActivo = Boolean.TRUE.equals(seleccionado.getActivo()); // estado previo
+            boolean estabaActivo = Boolean.TRUE.equals(seleccionado.getActivo());
 
             seleccionado.setNombre(nombre);
             seleccionado.setUsuario(usuario);
             seleccionado.setEmail(email);
             seleccionado.setActivo(activo);
 
-            dao.actualizar(seleccionado); // guarda cambios del trabajador
+            dao.actualizar(seleccionado); 
 
-            // ⬇️ Si pasó de ACTIVO a INACTIVO, cerramos todas sus asignaciones vigentes hoy
             if (estabaActivo && !activo) {
                 new AsignacionesDAO().cerrarAsignacionesDeTrabajador(seleccionado.getId(), java.time.LocalDate.now());
             }
 
-            // (opcional) si cambiaste la contraseña, actualízala
             if (pwd != null && !pwd.isBlank()) {
                 String hash = org.mindrot.jbcrypt.BCrypt.hashpw(pwd, org.mindrot.jbcrypt.BCrypt.gensalt(12));
                 dao.actualizarPassword(seleccionado.getId(), hash);

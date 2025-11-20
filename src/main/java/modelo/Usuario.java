@@ -9,7 +9,6 @@ public class Usuario {
     private boolean activo;
     private String passwordHash; 
 
-    // --- Getters y Setters ---
 
     public int getId() {
         return id;
@@ -53,7 +52,7 @@ public class Usuario {
         this.activo = activo;
     }
 
-    //Bcrypt
+
     public String getPasswordHash() {
         return passwordHash;
     }

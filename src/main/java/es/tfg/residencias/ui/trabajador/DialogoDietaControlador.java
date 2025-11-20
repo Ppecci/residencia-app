@@ -82,7 +82,7 @@ public class DialogoDietaControlador {
     private void info(String msg) {
         Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
         a.setHeaderText(null);
-        a.getDialogPane().getStylesheets().add(es.tfg.residencias.ui.util.Navegacion.appCss());  // ✅ estilo verde
+        a.getDialogPane().getStylesheets().add(es.tfg.residencias.ui.util.Navegacion.appCss());
         a.showAndWait();
     }
 

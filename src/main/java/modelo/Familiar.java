@@ -6,7 +6,6 @@ public class Familiar {
     private String usuario;
     private String email;
 
-    // Solo para alta
     private transient String passwordHashTemporal;
 
     public Familiar() {}

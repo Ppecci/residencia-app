@@ -21,7 +21,7 @@ import java.util.List;
 
 public class ReasignarAsignacionesControlador {
 
-    @FXML private DialogPane dialogPane;  // <-- el root del FXML (tiene que tener fx:id="dialogPane")
+    @FXML private DialogPane dialogPane;  
 
     @FXML private Label lblTitulo;
     @FXML private TextField inSustituido;
@@ -88,18 +88,16 @@ public class ReasignarAsignacionesControlador {
         try (Connection c = ConexionBD.obtener()) {
             c.setAutoCommit(false);
             try {
-                //  cerrar asignaciones actuales del sustituido
                 try (PreparedStatement ps = c.prepareStatement(
                         "UPDATE asignacion_trabajador SET end_date=? WHERE id=?")) {
                     for (AsignacionVista v : seleccionadas) {
-                        ps.setString(1, ini.toString()); // cierre el mismo día del inicio de sustitución
+                        ps.setString(1, ini.toString());
                         ps.setInt(2, v.getIdAsignacion());
                         ps.addBatch();
                     }
                     ps.executeBatch();
                 }
 
-                //crear nuevas para el sustituto
                 try (PreparedStatement ps = c.prepareStatement(
                         "INSERT INTO asignacion_trabajador(residente_id, trabajador_id, start_date, end_date, notas) " +
                         "VALUES (?,?,?,?,?)")) {

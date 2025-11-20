@@ -42,7 +42,6 @@ public class FilaResumenFamiliar {
 
     private static String nullToEmpty(String s) { return s == null ? "" : s; }
 
-    // Getters
     public IntegerProperty idResidenteProperty() { return idResidente; }
     public StringProperty  nombreProperty() { return nombre; }
     public StringProperty  apellidosProperty() { return apellidos; }
@@ -54,7 +53,7 @@ public class FilaResumenFamiliar {
     public StringProperty  dietaNotasProperty() { return dietaNotas; }
     public StringProperty  proximaCitaProperty() { return proximaCita; }
 
-    // Getters
+
     public Integer getIdResidente() { return idResidente.get(); }
     public String  getNombre() { return nombre.get(); }
     public String  getApellidos() { return apellidos.get(); }

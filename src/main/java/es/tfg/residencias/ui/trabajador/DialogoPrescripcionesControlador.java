@@ -16,7 +16,6 @@ import java.util.List;
 
 public class DialogoPrescripcionesControlador {
 
-    // ---- UI ----
     @FXML private Label lblTitulo;
     @FXML private TabPane tabs;
 
@@ -29,7 +28,6 @@ public class DialogoPrescripcionesControlador {
     @FXML private ComboBox<MedicacionDAO.Medicacion> cbMedicacion;
     @FXML private TextField inDosis, inFrecuencia, inVia, inDesde, inNotas;
 
-    // ---- Estado / DAOs ----
     private final PrescripcionDAO presDAO = new PrescripcionDAO();
     private final MedicacionDAO   medDAO  = new MedicacionDAO();
 
@@ -107,7 +105,7 @@ public class DialogoPrescripcionesControlador {
     @FXML private void nueva() {
         modoNuevo = true;
         limpiarForm();
-        inDesde.setText(LocalDate.now().toString()); // sugerimos hoy
+        inDesde.setText(LocalDate.now().toString()); 
         cbMedicacion.setDisable(false);
         inDesde.setDisable(false);
         tabs.getSelectionModel().select(0);
@@ -120,8 +118,8 @@ public class DialogoPrescripcionesControlador {
         if (!cur.isActiva()) { info("No se puede editar una prescripción finalizada."); return; }
         modoNuevo = false;
         cargarEnFormulario(cur);
-        cbMedicacion.setDisable(true); // no cambiamos medicamento en edición
-        inDesde.setDisable(true);      // ni la fecha de inicio
+        cbMedicacion.setDisable(true); 
+        inDesde.setDisable(true);      
     }
 
     @FXML private void finalizar() {

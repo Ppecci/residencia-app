@@ -25,14 +25,12 @@ public class TrabajadorDetalleControlador {
 
     @FXML
     public void initialize() {
-        // Enlaces de columnas
         colResidente.setCellValueFactory(new PropertyValueFactory<>("residente"));
         colInicio.setCellValueFactory(new PropertyValueFactory<>("inicio"));
         colFin.setCellValueFactory(new PropertyValueFactory<>("fin"));
         colNotas.setCellValueFactory(new PropertyValueFactory<>("notas"));
         tabla.setItems(datos);
 
-        // Handlers asignados en código (evita LoadException por onAction)
         if (chkSoloVigentes != null) {
             chkSoloVigentes.setOnAction(this::toggleVigentes);
         }
@@ -41,7 +39,6 @@ public class TrabajadorDetalleControlador {
         }
     }
 
-    /** Llamado por el padre tras cargar el FXML */
     public void setTrabajador(Trabajador t) {
         this.trabajador = t;
         lblTitulo.setText("Trabajador: " + t.getNombre() + " (" + t.getUsuario() + ")");
@@ -76,7 +73,7 @@ private void abrirReasignacion(javafx.event.ActionEvent e) {
         System.out.println("[DEBUG] URL: " + url);
 
         FXMLLoader loader = new FXMLLoader(url);
-        DialogPane root = loader.load(); // IMPORTANTE: DialogPane como root
+        DialogPane root = loader.load(); 
 
         Object ctrl = loader.getController();
         System.out.println("[DEBUG] Controller: " + (ctrl == null ? "null" : ctrl.getClass().getName()));
@@ -89,7 +86,7 @@ private void abrirReasignacion(javafx.event.ActionEvent e) {
         }
 
         ReasignarAsignacionesControlador c = (ReasignarAsignacionesControlador) ctrl;
-        c.setTrabajador(trabajador); // pasa el trabajador actual
+        c.setTrabajador(trabajador); 
 
         Dialog<Void> dlg = new Dialog<>();
         dlg.setTitle("Reasignar residentes");
@@ -97,10 +94,10 @@ private void abrirReasignacion(javafx.event.ActionEvent e) {
         dlg.initOwner(lblTitulo.getScene().getWindow());
         dlg.showAndWait();
 
-        cargar(); // refrescar al cerrar
+        cargar(); 
 
     } catch (Exception ex) {
-        ex.printStackTrace(); // verás la causa real en la consola
+        ex.printStackTrace(); 
         alertError("No se pudo abrir el diálogo", String.valueOf(ex));
     }
 }

@@ -7,12 +7,12 @@ public class TrabajadorResumenFila {
     private final String  nombre;
     private final String  apellidos;
 
-    // Habitación vigente
-    private final Integer habId;     // puede ser null si no tiene habitación vigente
+    // Habitación 
+    private final Integer habId;    
     private final String  habNumero;
     private final String  habPlanta;
 
-    // Dieta vigente
+    // Dieta 
     private final Integer dietaId;   
     private final String  dietaNotas;
 
@@ -46,7 +46,7 @@ public class TrabajadorResumenFila {
         this.proximaCita = proximaCita;
     }
 
-    // Getters
+
     public Integer getResidenteId()       { return residenteId; }
     public String  getNombre()            { return nombre; }
     public String  getApellidos()         { return apellidos; }

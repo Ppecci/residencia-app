@@ -57,7 +57,6 @@ public class ResidenteDietaDAO {
         try (Connection c = ConexionBD.obtener()) {
             c.setAutoCommit(false);
             try {
-                // cerrar vigente (si la hay)
                 try (PreparedStatement ps = c.prepareStatement("""
                         UPDATE residente_dieta
                            SET end_date = ?
@@ -68,7 +67,6 @@ public class ResidenteDietaDAO {
                     ps.setInt(2, residenteId);
                     ps.executeUpdate();
                 }
-                // abrir nueva
                 try (PreparedStatement ps = c.prepareStatement("""
                         INSERT INTO residente_dieta (residente_id, dieta_id, start_date, notas)
                         VALUES (?,?,?,?)

@@ -37,7 +37,7 @@ public class UsuariosDAO {
                 u.setFamiliarId(rs.wasNull() ? null : f);
 
                 u.setActivo(rs.getInt("activo") == 1);
-                u.setPasswordHash(rs.getString("password_hash")); // <-- necesario para BCrypt
+                u.setPasswordHash(rs.getString("password_hash")); 
                 return u;
             }
         }

@@ -23,7 +23,6 @@ public class DietaDAO {
         }
     }
 
-    // --- Dieta
     public static class DietaVigente {
         public final int idAsignacion; 
         public final String nombre;
@@ -136,14 +135,13 @@ public static class HistDieta {
     public HistDieta(String nombre, String desde, String hasta, String notas) {
         this.nombre = nombre; this.desde = desde; this.hasta = hasta; this.notas = notas;
     }
-    // getters para TableView
+
     public String getNombre() { return nombre; }
     public String getDesde()  { return desde;  }
     public String getHasta()  { return hasta;  }
     public String getNotas()  { return notas;  }
 }
 
-/** Histórico completo */
 public java.util.List<HistDieta> listarHistorico(int residenteId) throws Exception {
     String sql = """
         SELECT d.nombre, rd.start_date AS desde, rd.end_date AS hasta, rd.notas

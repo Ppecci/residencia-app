@@ -72,7 +72,6 @@ public class CitaMedicaDAO {
         }
     }
 
-    /** Inserta una cita y devuelve el id */
     public int insertar(CitaMedica cta) throws Exception {
         long t0 = System.nanoTime();
         String sql = """
@@ -110,7 +109,6 @@ public class CitaMedicaDAO {
         }
     }
 
-    /** Actualiza  */
     public void actualizar(CitaMedica cta) throws Exception {
         long t0 = System.nanoTime();
         String sql = """
@@ -140,7 +138,6 @@ public class CitaMedicaDAO {
         }
     }
 
-    /** Elimina una cita por id */
     public void eliminar(int id) throws Exception {
         String sql = "DELETE FROM citas_medicas WHERE id=?";
         try (Connection c = ConexionBD.obtener();

@@ -11,14 +11,12 @@
     <VBox spacing="16" alignment="CENTER" fillWidth="false">
         <children>
 
-            <!-- Logo -->
             <ImageView fx:id="logoImagen"
                        fitHeight="180" preserveRatio="true" pickOnBounds="true"/>
 
             <Label text="Gestor de Residencias"
                    style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
 
-            <!-- Formulario centrado y con ancho máximo -->
             <GridPane hgap="10" vgap="10"
                       alignment="CENTER"
                       maxWidth="360">

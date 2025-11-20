@@ -15,7 +15,7 @@ public class PrescripcionDAO {
         public final String frecuencia;    // "cada 8h"
         public final String via;           // oral, IV…
         public final String inicio;        // start_date
-        public final String fin;           // end_date (null/"" = activa)
+        public final String fin;           // end_date
         public final String notas;
 
         public PrescView(int id, String medicamento, String forma, String fuerza,
@@ -33,7 +33,6 @@ public class PrescripcionDAO {
             this.notas = notas;
         }
 
-        // Getters para TableView
         public int getId() { return id; }
         public String getMedicamento() { return medicamento; }
         public String getForma() { return forma; }
@@ -45,7 +44,6 @@ public class PrescripcionDAO {
         public String getFin() { return fin; }
         public String getNotas() { return notas; }
 
-        /** Conveniencia: devuelve true si la prescripción está activa. */
         public boolean isActiva() {
             return fin == null || fin.isBlank();
         }

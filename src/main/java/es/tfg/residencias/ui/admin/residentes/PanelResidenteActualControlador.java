@@ -111,7 +111,7 @@ private void cambiarHabitacion() {
         Navegacion.aplicarCss(dialog);
 
         var elegido = dialog.showAndWait();
-        if (elegido.isEmpty()) return; // cancelado
+        if (elegido.isEmpty()) return;
 
         var nueva = elegido.get();
 
@@ -266,14 +266,14 @@ private void anadirPrescripcion() {
             if (cbMed.getValue() == null || inDosis.getText().isBlank() || inFreq.getText().isBlank()) {
                 Alert w = new Alert(Alert.AlertType.WARNING,
                         "Medicamento, dosis y frecuencia son obligatorios.");
-                Navegacion.aplicarCss(w); // ✅
+                Navegacion.aplicarCss(w); 
                 w.showAndWait();
                 ev.consume();
             }
         });
 
         var res = dialog.showAndWait();
-        if (res.isEmpty() || res.get() != guardarBtn) return; // cancelado
+        if (res.isEmpty() || res.get() != guardarBtn) return;
 
         var medSel = cbMed.getValue();
         String dosis  = inDosis.getText().trim();
@@ -287,7 +287,7 @@ private void anadirPrescripcion() {
             Alert errDup = new Alert(Alert.AlertType.ERROR,
                     "Ya existe una prescripción ACTIVA para \"" + medSel.nombre + "\".\n" +
                     "No se puede duplicar la misma medicación activa.");
-            Navegacion.aplicarCss(errDup); // ✅
+            Navegacion.aplicarCss(errDup); 
             errDup.showAndWait();
             return;
         }
@@ -298,14 +298,14 @@ private void anadirPrescripcion() {
 
         Alert ok = new Alert(Alert.AlertType.INFORMATION,
                 "Prescripción añadida correctamente.");
-        Navegacion.aplicarCss(ok); // ✅
+        Navegacion.aplicarCss(ok); 
         ok.showAndWait();
 
     } catch (Exception e) {
         e.printStackTrace();
         Alert err = new Alert(Alert.AlertType.ERROR,
                 "Error al añadir prescripción:\n" + e.getMessage());
-        Navegacion.aplicarCss(err); // ✅
+        Navegacion.aplicarCss(err); 
         err.showAndWait();
     }
 }
@@ -333,7 +333,7 @@ private void finalizarPrescripcion() {
     if (res.isEmpty() || res.get() != ButtonType.OK) return;
 
     try {
-        String hoy = java.time.LocalDate.now().toString(); // formato YYYY-MM-DD
+        String hoy = java.time.LocalDate.now().toString();
         prescDAO.finalizar(seleccionada.getId(), hoy);
         cargarPrescripciones();
 
@@ -350,7 +350,7 @@ private void finalizarPrescripcion() {
         err.showAndWait();
     }
 }
-// DIETA ---
+// DIETA
     @FXML private Label lblDietaActual, lblDietaDesde, lblDietaNotas;
 
     private final DietaDAO dietaDAO = new DietaDAO();
@@ -358,7 +358,6 @@ private void finalizarPrescripcion() {
     private void cargarDieta() {
         if (residente == null) return;
 
-        // valores por defecto
         setDietaLabels("—", "—", "—");
 
         try {
@@ -393,7 +392,6 @@ private void cambiarDieta() {
             return;
         }
 
-        // --- Seleccionar dieta ---
         var dialog = new ChoiceDialog<>(catalogo.get(0), catalogo);
         dialog.setTitle("Cambiar dieta");
         dialog.setHeaderText("Selecciona la nueva dieta");
@@ -433,7 +431,6 @@ private void cambiarDieta() {
 
         String desde = (dp.getValue() != null ? dp.getValue().toString() : LocalDate.now().toString());
 
-        // --- Guardar ---
         dietaDAO.cambiarDieta(residente.getId(), nueva.id, desde, notas);
 
         cargarDieta();
@@ -453,15 +450,12 @@ private void cambiarDieta() {
     }
 }
 
-    // --- DIETA HIST: UI
 @FXML private TableView<DietaDAO.HistDieta> tablaHistDieta;
 @FXML private TableColumn<DietaDAO.HistDieta, String> colDHNombre, colDHDesde, colDHHasta, colDHNotas;
 
-// --- DIETA HIST: backing list
 private final ObservableList<DietaDAO.HistDieta> datosHistDieta = FXCollections.observableArrayList();
 private boolean dietaHistInit = false;
 
-// --- DIETA HIST: init
 private void initHistDietaIfNeeded() {
     if (dietaHistInit || tablaHistDieta == null) return;
     colDHNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
@@ -606,15 +600,13 @@ private void crearNuevoYVincular() {
         var res = dlg.showAndWait();
         if (res.isEmpty() || res.get() != guardar) return;
 
-        // ⬇️⬇️ AQUÍ EL CAMBIO: crear hash real con BCrypt
         String passPlano = inPass.getText();
-        String hash = BCrypt.hashpw(passPlano, BCrypt.gensalt(12)); // ⬅️ hash seguro
-        // ⬆️⬆️ FIN DEL CAMBIO
+        String hash = BCrypt.hashpw(passPlano, BCrypt.gensalt(12)); 
 
         int nuevoId = familiarDAO.crearFamiliar(
             inNombre.getText().trim(),
             inUsuario.getText().trim(),
-            hash, // ⬅️ usar el hash generado
+            hash, 
             inEmail.getText().trim()
         );
         familiarDAO.insertarAsignacion(residente.getId(), nuevoId, inParentesco.getText().trim());
@@ -686,7 +678,7 @@ private void editarFamiliar() {
 private void borrarFamiliar() {
     if (tablaFamilia == null || tablaFamilia.getSelectionModel().getSelectedItem() == null) {
         Alert alerta = new Alert(Alert.AlertType.INFORMATION, "Selecciona un familiar primero.");
-        alerta.getDialogPane().getStylesheets().add(Navegacion.appCss());  // ✅ Aplica tu app.css
+        alerta.getDialogPane().getStylesheets().add(Navegacion.appCss());
         alerta.showAndWait();
         return;
     }
@@ -847,7 +839,7 @@ private void cerrarAsignacionTrab() {
 
 private static class TrabItem {
     final int id;
-    final String etiqueta; // ej: "Rosa Pérez (staff07)" o "Rosa (—)" si no hay usuario
+    final String etiqueta; 
     TrabItem(int id, String etiqueta) { this.id = id; this.etiqueta = etiqueta; }
     @Override public String toString() { return etiqueta; }
 }
@@ -860,14 +852,12 @@ private void asignarTrabajador() {
     }
 
     try {
-        // 1) Cargar trabajadores ACTivos para elegir
         var activos = cargarTrabajadoresActivos();
         if (activos.isEmpty()) {
             new Alert(Alert.AlertType.INFORMATION, "No hay trabajadores activos para asignar.").showAndWait();
             return;
         }
 
-        // 2) Construir diálogo sencillo
         Dialog<ButtonType> dlg = new Dialog<>();
         dlg.setTitle("Asignar cuidador");
         dlg.setHeaderText("Selecciona trabajador y fecha de inicio");
@@ -898,13 +888,11 @@ private void asignarTrabajador() {
         if (sel == null) { new Alert(Alert.AlertType.INFORMATION, "Selecciona un trabajador.").showAndWait(); return; }
         if (ini == null) { new Alert(Alert.AlertType.INFORMATION, "Selecciona la fecha de inicio.").showAndWait(); return; }
 
-        // 3) Evitar duplicado vigente (mismo residente + mismo trabajador con end_date NULL)
         if (existeAsignacionVigente(residenteId, sel.id)) {
             new Alert(Alert.AlertType.INFORMATION, "Ese trabajador ya está asignado actualmente a este residente.").showAndWait();
             return;
         }
 
-        // 4) Insertar asignación (vigente => end_date NULL)
         try (Connection c = ConexionBD.obtener();
              PreparedStatement ps = c.prepareStatement(
                  "INSERT INTO asignacion_trabajador(residente_id, trabajador_id, start_date, end_date, notas) " +
@@ -927,7 +915,6 @@ private void asignarTrabajador() {
     }
 }
 
-/** Lista de trabajadores activos para el combo. SIN usar 'apellidos' (tu tabla no lo tiene). */
 private java.util.List<TrabItem> cargarTrabajadoresActivos() throws Exception {
     String sql = """
         SELECT t.id,
@@ -951,7 +938,6 @@ private java.util.List<TrabItem> cargarTrabajadoresActivos() throws Exception {
     return lista;
 }
 
-/** Devuelve true si ya hay una asignación vigente entre ese residente y ese trabajador. */
 private boolean existeAsignacionVigente(int resId, int trabId) throws Exception {
     String sql = """
         SELECT EXISTS(
